@@ -1,16 +1,12 @@
 package com.example.coll.data
 
-/**
- * Репозиторий для работы с данными кабинетов
- * В будущем можно заменить на работу с базой данных или API
- */
+
 object RoomRepository {
     
     private val rooms = mutableMapOf<String, Room>()
     
     init {
-        // Пример данных для тестирования
-        // В реальном приложении данные будут загружаться из базы данных или API
+
         addRoom(Room(
             id = "room_201",
             number = "201",

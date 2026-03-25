@@ -114,6 +114,25 @@ object GlobalThemeConfig {
     var overrideDarkTheme: Boolean? = null
 }
 
+/**
+ * Provide schedule UI tokens from outside (host app).
+ *
+ * This allows the host to fully control colors/typography without relying on Schedule's
+ * internal light/dark palette.
+ */
+@Composable
+fun ProvideScheduleTheme(
+    colors: ColorScheme,
+    typography: Typography,
+    content: @Composable () -> Unit,
+) {
+    CompositionLocalProvider(
+        LocalColors provides colors,
+        LocalTypography provides typography,
+        content = content
+    )
+}
+
 @Composable
 fun ScheduleTheme(
     darkTheme: Boolean = GlobalThemeConfig.overrideDarkTheme ?: isSystemInDarkTheme(),
@@ -124,9 +143,9 @@ fun ScheduleTheme(
         else -> LightColorScheme
     }
 
-    CompositionLocalProvider(
-        LocalColors provides colorScheme,
-        LocalTypography provides typography,
+    ProvideScheduleTheme(
+        colors = colorScheme,
+        typography = typography,
         content = content
     )
 }
