@@ -45,6 +45,8 @@ androidsvg = { group = "com.caverock", name = "androidsvg", version = "1.4" }
 androidx-foundation = { group = "androidx.compose.foundation", name = "foundation" }
 androidx-material-icons = { group = "androidx.compose.material", name = "material-icons-extended" }
 koin-android-compose = { module = "io.insert-koin:koin-androidx-compose", version = "4.1.0" }
+androidx-compose-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
+mysql-connector-j = { group = "mysql", name = "mysql-connector-java", version = "8.0.33" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

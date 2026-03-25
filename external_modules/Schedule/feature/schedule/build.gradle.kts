@@ -1,0 +1,40 @@
+plugins {
+    alias(libs.plugins.android.library)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.compose)
+}
+
+dependencies {
+    implementation(libs.koin.android)
+    implementation(libs.material3)
+
+    implementation(project(":shared-date"))
+    implementation(project(":shared-group"))
+    implementation(project(":shared-schedule"))
+    implementation(project(":shared-ui"))
+    implementation(project(":libs-navigation"))
+}
+
+android {
+    namespace = "com.example.schedule.feature.schedule"
+    compileSdk = 34
+
+    defaultConfig {
+        minSdk = 26
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
+    }
+
+    // ИСПРАВЛЕНИЕ: Заменили устаревший kotlinOptions на compilerOptions
+    // (так же, как мы делали в твоем главном модуле)
+    kotlinOptions {
+        jvmTarget = "11"
+    }
+
+    buildFeatures {
+        compose = true
+    }
+}

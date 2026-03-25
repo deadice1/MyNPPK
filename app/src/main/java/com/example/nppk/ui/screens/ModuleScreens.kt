@@ -9,16 +9,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
-import com.example.coll.ui.createMapView
 import com.example.schedule.di.GlobalBackstackNavigatorQualifier
-import com.example.schedule.feature.schedule.ui.ScheduleScreen
+import com.example.schedule.feature.schedule.ui.MainTestScreen
 import com.example.schedule.libs.navigation.BackstackNavigator
 import com.example.schedule.shared.ui.ui.theme.ScheduleTheme
 import org.koin.compose.koinInject
-import ru.filden.Main
+import ru.filden.MainApp
 import ru.filden.logic.ScheduleController
-import ru.filden.logic.Student
-import kotlin.random.Random
+import ru.filden.logic.UserRole
 
 /**
  * Экран с расписанием (подключен напрямую к модулю Schedule).
@@ -29,7 +27,7 @@ fun ScheduleModuleScreen() {
 
     LaunchedEffect(navigator) {
         navigator.popToRoot()
-        navigator.open(ScheduleScreen())
+        navigator.open(MainTestScreen())
     }
 
     val currentScreen by navigator.currentScreen.collectAsState()
@@ -48,8 +46,14 @@ fun ScheduleModuleScreen() {
 @Composable
 fun MapModuleScreen() {
     AndroidView(
-        modifier = Modifier.fillMaxSize(),
-        factory = { context -> createMapView(context) }
+        factory = { ctx ->
+            com.example.coll.ui.SvgMapView(ctx).apply {
+                post {
+                    loadSvgFromAssets("floor2.svg")
+                }
+            }
+        },
+        modifier = Modifier.fillMaxSize()
     )
 }
 
@@ -58,17 +62,12 @@ fun MapModuleScreen() {
  */
 @Composable
 fun DutyScheduleModuleScreen() {
-    val students = remember {
-        arrayListOf(
-            Student("loh", Random.nextLong(), 1),
-            Student("asd", Random.nextLong(), 2),
-            Student("qwe", Random.nextLong(), 3),
-            Student("123", Random.nextLong(), 4),
-            Student("pdf", Random.nextLong(), 5),
-            Student("hfgfh", Random.nextLong(), 99)
-        )
-    }
-    val controller = remember { ScheduleController(students) }
-    Main(controller = controller)
+    val controller = remember { ScheduleController() }
+
+    MainApp(
+        controller = controller,
+        initialGroup = "1",
+        userRole = UserRole.STUDENT,
+    )
 }
 

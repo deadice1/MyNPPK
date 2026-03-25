@@ -25,6 +25,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
     compileOptions {
@@ -46,7 +47,6 @@ dependencies {
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
 
-    // --- ИСПРАВЛЕННЫЕ ИМЕНА (как в файле друга) ---
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
@@ -55,7 +55,6 @@ dependencies {
     implementation(libs.androidx.material.icons)
     implementation(libs.material)
     implementation(libs.koin.android.compose)
-    // ----------------------------------------------
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -65,7 +64,6 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
-    // Подключение модуля друга
     implementation(project(":schedule-app"))
     implementation(project(":feature-schedule"))
     implementation(project(":libs-navigation"))
@@ -76,9 +74,7 @@ dependencies {
 
     implementation(libs.koin.android)
 
-    // Новый проект DutySchedule (приложение друга на Java/Compose)
     implementation(project(":duty-app"))
 
-    // Новый проект Map (coll) — карта кабинетов
     implementation(project(":map-app"))
 }

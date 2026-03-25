@@ -23,7 +23,7 @@ rootProject.name = "NPPK"
 include(":app")
 
 // ==========================================
-// === ПОДКЛЮЧЕНИЕ МОДУЛЕЙ ДРУГА (Schedule) ===
+// === ПОДКЛЮЧЕНИЕ МОДУЛЯ(Schedule) ===
 // ==========================================
 
 // 1. Главное приложение (App)
@@ -52,14 +52,14 @@ include(":shared-ui")
 project(":shared-ui").projectDir = file("external_modules/Schedule/shared/ui")
 
 // ==========================================
-// === ПОДКЛЮЧЕНИЕ ПРОЕКТА DutySchedule ===
+// === ПОДКЛЮЧЕНИЕ МОДУЛЯ DutySchedule ===
 // ==========================================
 
 include(":duty-app")
 project(":duty-app").projectDir = file("external_modules/DutySchedule/app")
 
 // ==========================================
-// === ПОДКЛЮЧЕНИЕ ПРОЕКТА Map (coll) ===
+// === ПОДКЛЮЧЕНИЕ МОДУЛЯ Map (coll) ===
 // ==========================================
 
 include(":map-app")

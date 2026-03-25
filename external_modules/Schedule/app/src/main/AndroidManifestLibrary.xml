@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Тег application оставляем "чистым".
+         Убираем: android:name, icon, label, roundIcon.
+         Они конфликтуют с твоим главным приложением. -->
+    <application>
+
+        <!-- Оставляем MainActivity, чтобы её можно было запустить.
+             Оставляем тему, чтобы дизайн друга не сломался.
+             УБИРАЕМ: <intent-filter> с LAUNCHER, чтобы не было второй иконки. -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:theme="@style/Theme.Schedule" />
+
+    </application>
+
+</manifest>

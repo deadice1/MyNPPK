@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Модуль теперь используется как библиотека внутри основного приложения.
+         Поэтому:
+         - не задаём собственные icon/label/roundIcon;
+         - убираем MAIN/LAUNCHER, чтобы не было второй иконки приложения. -->
+    <application>
+        <activity
+            android:name=".selectGroupActivity"
+            android:exported="false"
+            android:theme="@style/Theme.DutySchedule" />
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="false"
+            android:theme="@style/Theme.DutySchedule" />
+    </application>
+
+</manifest>
