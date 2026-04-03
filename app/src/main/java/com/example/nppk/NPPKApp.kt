@@ -1,6 +1,7 @@
 package com.example.nppk
 
 import android.app.Application
+import com.example.nppk.data.di.dataModule
 import com.example.schedule.di.navigationModule
 import com.example.schedule.feature.schedule.di.featureScheduleModule
 import com.example.schedule.shared.date.di.sharedDateModule
@@ -22,7 +23,8 @@ class NPPKApp : Application() {
                 sharedDateModule,
                 sharedGroupModule,
                 sharedScheduleModule,
-                featureScheduleModule
+                featureScheduleModule,
+                dataModule
             )
         }
     }
