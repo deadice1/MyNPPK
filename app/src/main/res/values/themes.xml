@@ -1,8 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <!-- Делаем тему приложения наследником AppCompat/Material3,
-         чтобы корректно работали AppCompatActivity из чужих модулей -->
-    <style name="Theme.NPPK" parent="Theme.Material3.DayNight.NoActionBar" />
+    <style name="Theme.NPPK" parent="Theme.Material3.DayNight.NoActionBar"></style>
+
+    <style name="Theme.App.Starting" parent="Theme.SplashScreen">
+        <!-- Делаем фон прозрачным, чтобы система не рисовала белый или синий экран -->
+        <item name="windowSplashScreenBackground">@android:color/transparent</item>
+
+        <!-- Делаем окно прозрачным -->
+        <item name="android:windowIsTranslucent">true</item>
+
+        <!-- Подставляем пустую иконку (ic_transparent.xml) -->
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_transparent</item>
+
+        <!-- Переключаемся на основную тему после старта -->
+        <item name="postSplashScreenTheme">@style/Theme.NPPK</item>
+    </style>
 
 </resources>

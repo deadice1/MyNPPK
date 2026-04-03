@@ -77,4 +77,6 @@ dependencies {
     implementation(project(":duty-app"))
 
     implementation(project(":map-app"))
+
+    implementation("androidx.core:core-splashscreen:1.2.0")
 }

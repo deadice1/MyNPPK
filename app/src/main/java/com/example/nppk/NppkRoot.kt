@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -45,6 +46,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
@@ -55,6 +57,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
 import com.example.nppk.ui.screens.DutyScheduleModuleScreen
 import com.example.nppk.ui.screens.MapModuleScreen
@@ -161,7 +164,7 @@ data class BottomNavItem(
 private const val PREFS_NAME = "nppk_prefs"
 private const val KEY_DARK_THEME = "dark_theme_enabled"
 
-private fun readDarkThemePreference(context: Context): Boolean =
+fun readDarkThemePreference(context: Context): Boolean =
     context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         .getBoolean(KEY_DARK_THEME, false)
 
@@ -186,19 +189,19 @@ fun MainScaffold(
     val navItems: List<BottomNavItem> =
         when (authMode) {
             AuthMode.GUEST -> listOf(
-                BottomNavItem(title = "", fallbackIcon = Icons.Outlined.Person),
-                BottomNavItem(title = "", fallbackIcon = Icons.Outlined.Map)
+                BottomNavItem(title = "Профиль", fallbackIcon = Icons.Outlined.Person),
+                BottomNavItem(title = "Карта", fallbackIcon = Icons.Outlined.Map)
             )
             AuthMode.AUTHENTICATED -> listOf(
                 BottomNavItem(
-                    title = "",
+                    title = "Расписание", // Добавили текст
                     iconRes = ScheduleTheme.colors.imageCalendar,
                     selectedIconRes = ScheduleTheme.colors.imageCalendarClicked
                 ),
-                BottomNavItem(title = "", fallbackIcon = Icons.Outlined.Map),
-                BottomNavItem(title = "", fallbackIcon = Icons.Outlined.Assignment),
+                BottomNavItem(title = "Карта", fallbackIcon = Icons.Outlined.Map),
+                BottomNavItem(title = "Дежурства", fallbackIcon = Icons.Outlined.Assignment),
                 BottomNavItem(
-                    title = "",
+                    title = "Настройки",
                     iconRes = ScheduleTheme.colors.imageSettings,
                     selectedIconRes = ScheduleTheme.colors.imageSettingsClicked
                 )
@@ -376,53 +379,54 @@ fun BottomNavigationBar(
         modifier = Modifier
             .fillMaxWidth()
             .background(ScheduleTheme.colors.surface)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+            .padding(horizontal = 8.dp, vertical = 8.dp)
+            .navigationBarsPadding(), // <--- ДОБАВЬ ЭТО!
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         items.forEachIndexed { index, item ->
             val isSelected = index == selectedIndex
+
+            // Определяем цвет иконки
+            val iconColor = if (isSelected) ScheduleTheme.colors.textPrimary else ScheduleTheme.colors.textSecondary
+
             Column(
                 modifier = Modifier
                     .weight(1f)
-                    .clip(RoundedCornerShape(14.dp))
+                    .clip(RoundedCornerShape(12.dp))
                     .background(
                         if (isSelected) ScheduleTheme.colors.chipsSelect
-                        else ScheduleTheme.colors.surface
+                        else Color.Transparent
                     )
                     .clickable { onItemSelected(index) }
-                    .padding(vertical = 10.dp, horizontal = 4.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
+                    .padding(vertical = 8.dp, horizontal = 2.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                when {
-                    item.iconRes != null -> {
-                        val drawable = if (isSelected && item.selectedIconRes != null)
-                            item.selectedIconRes else item.iconRes
-                        Image(
-                            painter = painterResource(id = drawable),
-                            contentDescription = item.title
-                        )
-                    }
-                    item.fallbackIcon != null -> {
-                        Icon(
-                            imageVector = item.fallbackIcon,
-                            contentDescription = item.title,
-                            tint = if (isSelected) ScheduleTheme.colors.surface
-                            else ScheduleTheme.colors.textPrimary
-                        )
-                    }
+                // ВЕЗДЕ используем Icon вместо Image
+                if (item.iconRes != null) {
+                    val drawableRes = if (isSelected && item.selectedIconRes != null)
+                        item.selectedIconRes else item.iconRes
+
+                    Icon(
+                        painter = painterResource(id = drawableRes),
+                        contentDescription = item.title,
+                        tint = iconColor // Принудительно красим иконку!
+                    )
+                } else if (item.fallbackIcon != null) {
+                    Icon(
+                        imageVector = item.fallbackIcon,
+                        contentDescription = item.title,
+                        tint = iconColor // Красим вектор
+                    )
                 }
 
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(2.dp))
 
                 Text(
                     text = item.title,
-                    style = ScheduleTheme.typography.bodySecondary,
-                    color = if (isSelected) ScheduleTheme.colors.surface
-                    else ScheduleTheme.colors.textPrimary,
+                    style = ScheduleTheme.typography.bodySecondary.copy(fontSize = 10.sp),
+                    color = iconColor, // Текст тоже красим так же
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
                     textAlign = TextAlign.Center
                 )
             }
