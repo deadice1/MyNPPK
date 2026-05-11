@@ -14,7 +14,7 @@ android {
         jvmTarget = "11"
     }
 
-    namespace = "com.example.schedule.feature.ui"
+    namespace = "com.example.schedule.feature.schedule"
     compileSdk = 34
 
     defaultConfig {

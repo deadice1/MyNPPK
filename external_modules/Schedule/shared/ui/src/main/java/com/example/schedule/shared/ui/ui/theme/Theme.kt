@@ -7,7 +7,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
-import com.example.schedule.feature.ui.R
+import com.example.schedule.feature.schedule.R
 
 private val LightColorScheme = ColorScheme(
     textPrimary = Black,
@@ -106,20 +106,6 @@ val typography = Typography(
     )
 )
 
-object GlobalThemeConfig {
-    /**
-     * When not null, this value overrides system theme for all ScheduleTheme calls
-     * that don't pass darkTheme explicitly.
-     */
-    var overrideDarkTheme: Boolean? = null
-}
-
-/**
- * Provide schedule UI tokens from outside (host app).
- *
- * This allows the host to fully control colors/typography without relying on Schedule's
- * internal light/dark palette.
- */
 @Composable
 fun ProvideScheduleTheme(
     colors: ColorScheme,
@@ -135,7 +121,7 @@ fun ProvideScheduleTheme(
 
 @Composable
 fun ScheduleTheme(
-    darkTheme: Boolean = GlobalThemeConfig.overrideDarkTheme ?: isSystemInDarkTheme(),
+    darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {

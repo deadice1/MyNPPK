@@ -28,6 +28,9 @@ import com.example.nppk.ui.viewmodels.SettingsViewModel
 import com.example.schedule.shared.ui.ui.theme.ScheduleTheme
 import org.koin.androidx.compose.koinViewModel
 
+import android.widget.Toast
+import androidx.compose.ui.platform.LocalContext
+
 @Composable
 fun SettingsScreen(
     isDarkTheme: Boolean,
@@ -35,6 +38,7 @@ fun SettingsScreen(
     onLogout: () -> Unit,
     viewModel: SettingsViewModel = koinViewModel()
 ) {
+    val context = LocalContext.current
     val user by viewModel.user.collectAsState()
     var showLogoutDialog by remember { mutableStateOf(false) }
 
@@ -42,6 +46,11 @@ fun SettingsScreen(
     var currentPassword by remember { mutableStateOf("") }
     var newPassword by remember { mutableStateOf("") }
     val isCurrentPasswordValid = currentPassword.length >= 4
+    var isChangingPassword by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        viewModel.loadUserProfile()
+    }
 
     if (showLogoutDialog) {
         AppDialog(
@@ -50,7 +59,11 @@ fun SettingsScreen(
             text = "Вы уверены, что хотите выйти из аккаунта?",
             confirmText = "Выйти",
             dismissText = "Отмена",
-            onConfirm = { showLogoutDialog = false; onLogout() }
+            onConfirm = { 
+                showLogoutDialog = false
+                viewModel.logout()
+                onLogout() 
+            }
         )
     }
 
@@ -107,13 +120,30 @@ fun SettingsScreen(
                     SettingsField(newPassword, { newPassword = it }, "Новый пароль", isPassword = true, enabled = isCurrentPasswordValid)
                     Spacer(modifier = Modifier.height(16.dp))
                     Button(
-                        onClick = { Log.d("MY_APP_DEBUG", "Пароль изменен") },
+                        onClick = { 
+                            isChangingPassword = true
+                            viewModel.changePassword(newPassword) { success ->
+                                isChangingPassword = false
+                                if (success) {
+                                    Toast.makeText(context, "Пароль успешно изменен", Toast.LENGTH_SHORT).show()
+                                    isExpanded = false
+                                    currentPassword = ""
+                                    newPassword = ""
+                                } else {
+                                    Toast.makeText(context, "Ошибка при изменении пароля", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        },
                         modifier = Modifier.fillMaxWidth(),
-                        enabled = isCurrentPasswordValid && newPassword.length >= 4,
+                        enabled = isCurrentPasswordValid && newPassword.length >= 4 && !isChangingPassword,
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = ScheduleTheme.colors.accent)
                     ) {
-                        Text("Сохранить пароль")
+                        if (isChangingPassword) {
+                            CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                        } else {
+                            Text("Сохранить пароль")
+                        }
                     }
                 }
             }

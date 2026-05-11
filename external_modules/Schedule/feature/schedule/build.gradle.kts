@@ -7,15 +7,21 @@ plugins {
 dependencies {
     implementation(libs.koin.android)
     implementation(libs.material3)
+    implementation(libs.koin.android.compose)
 
     implementation(project(":shared-date"))
     implementation(project(":shared-group"))
     implementation(project(":shared-schedule"))
     implementation(project(":shared-ui"))
     implementation(project(":libs-navigation"))
+    implementation("com.google.firebase:firebase-messaging:23.4.1")
 }
 
 android {
+    kotlinOptions {
+        jvmTarget = "11"
+    }
+
     namespace = "com.example.schedule.feature.schedule"
     compileSdk = 34
 
@@ -26,12 +32,6 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
-    }
-
-    // ИСПРАВЛЕНИЕ: Заменили устаревший kotlinOptions на compilerOptions
-    // (так же, как мы делали в твоем главном модуле)
-    kotlinOptions {
-        jvmTarget = "11"
     }
 
     buildFeatures {

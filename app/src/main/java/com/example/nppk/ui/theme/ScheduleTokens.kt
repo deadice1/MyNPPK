@@ -6,7 +6,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
-import com.example.schedule.feature.ui.R
+import com.example.schedule.feature.schedule.R
 import com.example.schedule.shared.ui.ui.theme.ColorScheme as ScheduleColorScheme
 import com.example.schedule.shared.ui.ui.theme.Typography as ScheduleTypography
 

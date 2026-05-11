@@ -18,13 +18,27 @@ class SettingsViewModel(private val authRepository: AuthRepository) : ViewModel(
         loadUserProfile()
     }
 
-    private fun loadUserProfile() {
+    fun loadUserProfile() {
         viewModelScope.launch {
             try {
                 _user.value = authRepository.getUserProfile()
             } catch (e: Exception) {
                 // Обработка ошибки загрузки
             }
+        }
+    }
+
+    fun changePassword(newPassword: String, onResult: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            val currentUser = _user.value ?: return@launch
+            val success = authRepository.updateCredentials(currentUser.login, newPassword)
+            onResult(success)
+        }
+    }
+
+    fun logout() {
+        viewModelScope.launch {
+            authRepository.logout()
         }
     }
 }

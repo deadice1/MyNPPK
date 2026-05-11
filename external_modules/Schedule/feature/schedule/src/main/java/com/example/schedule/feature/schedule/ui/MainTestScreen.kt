@@ -1,6 +1,5 @@
 package com.example.schedule.feature.schedule.ui
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -15,56 +14,52 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.schedule.feature.schedule.presentation.ScheduleViewModel
 import com.example.schedule.feature.schedule.presentation.TeacherScheduleViewModel
+import com.example.schedule.feature.schedule.presentation.TeacherSettingsViewModel
 import com.example.schedule.libs.navigation.Screen
-import org.koin.java.KoinJavaComponent.inject
 
-class MainTestScreen : Screen {
+// ВАЖНО: Используем правильный импорт для Compose
+import org.koin.androidx.compose.koinViewModel
 
-    // Инжектим обе ViewModel (и для студента, и для учителя)
-    private val studentViewModel: ScheduleViewModel by inject(ScheduleViewModel::class.java)
-    private val teacherViewModel: TeacherScheduleViewModel by inject(TeacherScheduleViewModel::class.java)
+class MainTestScreen(private val isTeacherRole: Boolean = false) : Screen {
 
     @Composable
     override fun Render() {
-        // Переключатель состояния (false = Студент, true = Учитель)
-        var isTeacherMode by remember { mutableStateOf(false) }
+        var isTeacherMode by remember { mutableStateOf(isTeacherRole) }
 
         Box(modifier = Modifier.fillMaxSize()) {
-
-            // 1. ПОКАЗЫВАЕМ КОНТЕНТ В ЗАВИСИМОСТИ ОТ РЕЖИМА
             if (isTeacherMode) {
                 TeacherContent()
             } else {
                 StudentContent()
             }
 
-            // 2. КНОПКА ПЕРЕКЛЮЧЕНИЯ (ПОВЕРХ ВСЕГО ВНИЗУ СПРАВА)
-            Button(
-                onClick = { isTeacherMode = !isTeacherMode },
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(16.dp)
-                    .padding(bottom = 50.dp) // Чуть выше, чтобы не перекрывать табы
-            ) {
-                Text(text = if (isTeacherMode) "Вернуться к студенту" else "Режим учителя")
+            if (isTeacherRole) {
+                Button(
+                    onClick = { isTeacherMode = !isTeacherMode },
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(16.dp)
+                        .padding(bottom = 50.dp)
+                ) {
+                    Text(text = if (isTeacherMode) "Вернуться к студенту" else "Режим учителя")
+                }
             }
         }
     }
 
     @Composable
     private fun StudentContent() {
+        // ПОЛУЧАЕМ VIEWMODEL ЗДЕСЬ: теперь она привязана к жизненному циклу Compose
+        val studentViewModel: ScheduleViewModel = koinViewModel()
+
         val state by studentViewModel.state.collectAsState()
 
-        LaunchedEffect(Unit) {
-            studentViewModel.loadInitialData()
-        }
+        LaunchedEffect(Unit) { studentViewModel.loadInitialData() }
 
-        // Используем твою готовую функцию Render
-        Render(
+        ScheduleContent(
             state = state,
             onSelectedScheduleIndexChangedListener = studentViewModel::updateSelectedScheduleIndex,
             onOpenGroupSelectorListener = studentViewModel::startGroupSelecting,
@@ -72,26 +67,41 @@ class MainTestScreen : Screen {
             onGroupSelectedListener = studentViewModel::selectNewGroup,
             onPreviousDayListener = studentViewModel::getPreviousDay,
             onNextDayListener = studentViewModel::getNextDay,
+            onDateSelectedListener = studentViewModel::selectDate
         )
     }
 
     @Composable
     private fun TeacherContent() {
-        val state by teacherViewModel.state.collectAsState()
+        // ПОЛУЧАЕМ VIEWMODELS ЗДЕСЬ
+        val teacherViewModel: TeacherScheduleViewModel = koinViewModel()
+        val teacherSettingsViewModel: TeacherSettingsViewModel = koinViewModel()
 
-        LaunchedEffect(Unit) {
-            teacherViewModel.loadInitialData()
+        val state by teacherViewModel.state.collectAsState()
+        var showSettings by remember { mutableStateOf(false) }
+
+        LaunchedEffect(Unit) { teacherViewModel.loadInitialData() }
+
+        if (showSettings) {
+            TeacherSettingsBottomSheet(
+                viewModel = teacherSettingsViewModel,
+                onDismiss = {
+                    showSettings = false
+                    teacherViewModel.reloadCurrentSchedule()
+                }
+            )
         }
 
-        // Тоже используем Render, но отключаем выбор групп (пустые функции)
-        Render(
+        ScheduleContent(
             state = state,
             onSelectedScheduleIndexChangedListener = teacherViewModel::updateSelectedScheduleIndex,
-            onOpenGroupSelectorListener = { }, // Учитель не выбирает группу
+            onOpenGroupSelectorListener = { },
             onCloseGroupSelectorListener = { },
             onGroupSelectedListener = { },
             onPreviousDayListener = teacherViewModel::getPreviousDay,
             onNextDayListener = teacherViewModel::getNextDay,
+            onDateSelectedListener = teacherViewModel::selectDate,
+            onSettingsClickListener = { showSettings = true },
         )
     }
 }

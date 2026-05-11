@@ -1,6 +1,7 @@
 package com.example.schedule.feature.schedule.ui
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import com.example.schedule.feature.schedule.presentation.ScheduleViewModel
@@ -15,7 +16,7 @@ class ScheduleScreen : Screen {
     override fun Render() {
         val state by viewModel.state.collectAsState()
 
-        Render(
+        ScheduleContent(
             state = state,
             onSelectedScheduleIndexChangedListener = viewModel::updateSelectedScheduleIndex,
             onOpenGroupSelectorListener = viewModel::startGroupSelecting,
@@ -23,6 +24,11 @@ class ScheduleScreen : Screen {
             onGroupSelectedListener = viewModel::selectNewGroup,
             onPreviousDayListener = viewModel::getPreviousDay,
             onNextDayListener = viewModel::getNextDay,
+            onDateSelectedListener = viewModel::selectDate,
         )
+
+        LaunchedEffect(Unit) {
+            viewModel.loadInitialData()
+        }
     }
 }

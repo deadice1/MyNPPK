@@ -98,7 +98,7 @@ fun NppkMainContent() {
     val view = LocalView.current
 
     var isDarkTheme by rememberSaveable { mutableStateOf(readDarkThemePreference(context)) }
-    var authMode by rememberSaveable { mutableStateOf(AuthMode.UNAUTHENTICATED) }
+    var authMode by rememberSaveable { mutableStateOf(if (readIsLoggedIn(context)) AuthMode.AUTHENTICATED else AuthMode.UNAUTHENTICATED) }
     var openGuestOnMap by rememberSaveable { mutableStateOf(false) }
 
     val scheduleColors = scheduleColorSchemeFromMaterial(darkTheme = isDarkTheme)
@@ -163,10 +163,15 @@ data class BottomNavItem(
 
 private const val PREFS_NAME = "nppk_prefs"
 private const val KEY_DARK_THEME = "dark_theme_enabled"
+private const val KEY_IS_LOGGED_IN = "is_logged_in"
 
 fun readDarkThemePreference(context: Context): Boolean =
     context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         .getBoolean(KEY_DARK_THEME, false)
+
+fun readIsLoggedIn(context: Context): Boolean =
+    context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        .getBoolean(KEY_IS_LOGGED_IN, false)
 
 private fun saveDarkThemePreference(context: Context, enabled: Boolean) {
     context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
