@@ -37,6 +37,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -60,15 +61,22 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
 import com.example.nppk.ui.screens.DutyScheduleModuleScreen
+import com.example.nppk.ui.screens.GroupSelectionScreen
 import com.example.nppk.ui.screens.MapModuleScreen
 import com.example.nppk.ui.screens.ScheduleModuleScreen
+import com.example.nppk.ui.viewmodels.GroupSelectionViewModel
+import com.example.nppk.ui.viewmodels.MyGroupsViewModel
 import com.example.schedule.shared.ui.ui.theme.ScheduleTheme
 import com.example.nppk.ui.theme.scheduleColorSchemeFromMaterial
 import com.example.nppk.ui.theme.scheduleTypographyFromMaterial
 import com.example.schedule.shared.ui.ui.theme.ProvideScheduleTheme
+import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
+import com.example.nppk.data.repository.AuthRepository
 
 enum class AuthMode {
     UNAUTHENTICATED,
+    SELECTING_GROUPS,
     GUEST,
     AUTHENTICATED
 }
@@ -98,7 +106,18 @@ fun NppkMainContent() {
     val view = LocalView.current
 
     var isDarkTheme by rememberSaveable { mutableStateOf(readDarkThemePreference(context)) }
-    var authMode by rememberSaveable { mutableStateOf(if (readIsLoggedIn(context)) AuthMode.AUTHENTICATED else AuthMode.UNAUTHENTICATED) }
+    val authRepository: AuthRepository = koinInject()
+    var authMode by rememberSaveable { 
+        mutableStateOf(
+            when {
+                readIsLoggedIn(context) -> {
+                    if (authRepository.isTeacherFirstLogin()) AuthMode.SELECTING_GROUPS 
+                    else AuthMode.AUTHENTICATED
+                }
+                else -> AuthMode.UNAUTHENTICATED
+            }
+        ) 
+    }
     var openGuestOnMap by rememberSaveable { mutableStateOf(false) }
 
     val scheduleColors = scheduleColorSchemeFromMaterial(darkTheme = isDarkTheme)
@@ -125,6 +144,28 @@ fun NppkMainContent() {
                     onLoginAsGuest = {
                         authMode = AuthMode.GUEST
                         openGuestOnMap = true
+                    },
+                    onTeacherFirstLogin = {
+                        authMode = AuthMode.SELECTING_GROUPS
+                    }
+                )
+            }
+
+            AuthMode.SELECTING_GROUPS -> {
+                val viewModel: MyGroupsViewModel = koinViewModel()
+                val authRepository: AuthRepository = koinInject()
+                val groups by viewModel.groups.collectAsState()
+
+                GroupSelectionScreen(
+                    groups = groups,
+                    onGroupsSelected = { selectedGroups ->
+                        viewModel.addGroups(selectedGroups.map { it.name })
+                        authRepository.setTeacherFirstLoginCompleted()
+                        authMode = AuthMode.AUTHENTICATED
+                    },
+                    onSkip = {
+                        authRepository.setTeacherFirstLoginCompleted()
+                        authMode = AuthMode.AUTHENTICATED
                     }
                 )
             }
@@ -204,19 +245,20 @@ fun MainScaffold(
                     selectedIconRes = ScheduleTheme.colors.imageCalendarClicked
                 ),
                 BottomNavItem(title = "Карта", fallbackIcon = Icons.Outlined.Map),
-                BottomNavItem(title = "Дежурства", fallbackIcon = Icons.Outlined.Assignment),
+                BottomNavItem(title = "Дежурства", iconRes = R.drawable.ic_cleaning),
                 BottomNavItem(
                     title = "Настройки",
                     iconRes = ScheduleTheme.colors.imageSettings,
                     selectedIconRes = ScheduleTheme.colors.imageSettingsClicked
                 )
             )
-            AuthMode.UNAUTHENTICATED -> emptyList()
+            else -> emptyList()
         }
 
     // Текущая страница и направление анимации
     var currentPage by rememberSaveable { mutableIntStateOf(0) }
     var navDirection by remember { mutableStateOf(NavDirection.RIGHT) }
+    var isMyGroupsVisible by rememberSaveable { mutableStateOf(false) }
 
     val density = LocalDensity.current
     val view = LocalView.current
@@ -263,60 +305,68 @@ fun MainScaffold(
                 .weight(1f)
                 .fillMaxWidth()
         ) {
-            // ---------------------------------------------------------------
-            // AnimatedContent вместо HorizontalPager.
-            // Никаких внутренних gesture detector-ов — только чистая анимация.
-            // Модули внутри получают все жесты без каких-либо конфликтов.
-            // ---------------------------------------------------------------
-            AnimatedContent(
-                targetState = currentPage,
-                transitionSpec = {
-                    val animDuration = 300
-                    if (navDirection == NavDirection.RIGHT) {
-                        slideInHorizontally(
-                            animationSpec = tween(animDuration),
-                            initialOffsetX = { it }
-                        ) togetherWith slideOutHorizontally(
-                            animationSpec = tween(animDuration),
-                            targetOffsetX = { -it }
-                        )
-                    } else {
-                        slideInHorizontally(
-                            animationSpec = tween(animDuration),
-                            initialOffsetX = { -it }
-                        ) togetherWith slideOutHorizontally(
-                            animationSpec = tween(animDuration),
-                            targetOffsetX = { it }
-                        )
+            if (authMode == AuthMode.AUTHENTICATED && currentPage == (navItems.size - 1) && isMyGroupsVisible) {
+                BackHandler { isMyGroupsVisible = false }
+                com.example.nppk.ui.screens.MyGroupsScreen(
+                    onBack = { isMyGroupsVisible = false }
+                )
+            } else {
+                // ---------------------------------------------------------------
+                // AnimatedContent вместо HorizontalPager.
+                // ---------------------------------------------------------------
+                AnimatedContent(
+                    targetState = currentPage,
+                    transitionSpec = {
+                        val animDuration = 300
+                        if (navDirection == NavDirection.RIGHT) {
+                            slideInHorizontally(
+                                animationSpec = tween(animDuration),
+                                initialOffsetX = { it }
+                            ) togetherWith slideOutHorizontally(
+                                animationSpec = tween(animDuration),
+                                targetOffsetX = { -it }
+                            )
+                        } else {
+                            slideInHorizontally(
+                                animationSpec = tween(animDuration),
+                                initialOffsetX = { -it }
+                            ) togetherWith slideOutHorizontally(
+                                animationSpec = tween(animDuration),
+                                targetOffsetX = { it }
+                            )
+                        }
+                    },
+                    modifier = Modifier.fillMaxSize(),
+                    label = "page_transition"
+                ) { page ->
+                    when (authMode) {
+                        AuthMode.GUEST -> when (page) {
+                            0 -> LoginScreen(
+                                onLogin = { onAuthenticated() },
+                                onLoginAsGuest = { },
+                                onTeacherFirstLogin = { } // Не актуально для гостя
+                            )
+                            else -> MapModuleScreen()
+                        }
+                        AuthMode.AUTHENTICATED -> when (page) {
+                            0 -> ScheduleModuleScreen()
+                            1 -> MapModuleScreen()
+                            2 -> DutyScheduleModuleScreen()
+                            else -> SettingsScreen(
+                                isDarkTheme = isDarkTheme,
+                                onDarkThemeChange = onDarkThemeChange,
+                                onLogout = { onLogout() },
+                                onOpenMyGroups = { isMyGroupsVisible = true }
+                            )
+                        }
+                        AuthMode.UNAUTHENTICATED,
+                        AuthMode.SELECTING_GROUPS -> Box(Modifier.fillMaxSize())
                     }
-                },
-                modifier = Modifier.fillMaxSize(),
-                label = "page_transition"
-            ) { page ->
-                when (authMode) {
-                    AuthMode.GUEST -> when (page) {
-                        0 -> LoginScreen(
-                            onLogin = { onAuthenticated() },
-                            onLoginAsGuest = { }
-                        )
-                        else -> MapModuleScreen()
-                    }
-                    AuthMode.AUTHENTICATED -> when (page) {
-                        0 -> ScheduleModuleScreen()
-                        1 -> MapModuleScreen()
-                        2 -> DutyScheduleModuleScreen()
-                        else -> SettingsScreen(
-                            isDarkTheme = isDarkTheme,
-                            onDarkThemeChange = onDarkThemeChange,
-                            onLogout = { onLogout() }
-                        )
-                    }
-                    AuthMode.UNAUTHENTICATED -> Box(Modifier.fillMaxSize())
                 }
             }
 
             // Левая edge-зона — свайп вправо → предыдущая вкладка
-            if (currentPage > 0) {
+            if (currentPage > 0 && !isMyGroupsVisible) {
                 Box(
                     modifier = Modifier
                         .align(Alignment.CenterStart)

@@ -11,6 +11,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.outlined.ExitToApp
 import androidx.compose.material3.*
@@ -36,6 +37,7 @@ fun SettingsScreen(
     isDarkTheme: Boolean,
     onDarkThemeChange: (Boolean) -> Unit,
     onLogout: () -> Unit,
+    onOpenMyGroups: () -> Unit,
     viewModel: SettingsViewModel = koinViewModel()
 ) {
     val context = LocalContext.current
@@ -150,6 +152,35 @@ fun SettingsScreen(
         }
 
         Spacer(modifier = Modifier.height(32.dp))
+
+        // --- ТОЛЬКО ДЛЯ ПРЕПОДАВАТЕЛЕЙ ---
+        if (user?.role == "Преподаватель") {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(ScheduleTheme.colors.surface)
+                    .clickable { 
+                        onOpenMyGroups()
+                    }
+                    .padding(horizontal = 16.dp, vertical = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = "Мои группы",
+                    style = ScheduleTheme.typography.bodyMain,
+                    color = ScheduleTheme.colors.textPrimary
+                )
+                Icon(
+                    imageVector = Icons.Filled.KeyboardArrowRight,
+                    contentDescription = null,
+                    tint = ScheduleTheme.colors.textPrimary,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+            Spacer(modifier = Modifier.height(32.dp))
+        }
 
         // --- СИСТЕМНЫЕ НАСТРОЙКИ ---
         Text(text = "Системные настройки", style = ScheduleTheme.typography.bodyMain, color = ScheduleTheme.colors.textPrimary)

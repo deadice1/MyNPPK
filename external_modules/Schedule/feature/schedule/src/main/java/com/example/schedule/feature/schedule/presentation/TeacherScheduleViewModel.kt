@@ -5,22 +5,33 @@ import androidx.lifecycle.viewModelScope
 import com.example.schedule.shared.date.domain.usecase.GetDatesAroundTodayUseCase
 import com.example.schedule.shared.date.domain.usecase.GetTodayUseCase
 import com.example.schedule.shared.group.domain.entity.Group
+import com.example.schedule.shared.schedule.domain.repository.TeacherPreferencesRepository
 import com.example.schedule.shared.schedule.domain.usecase.GetTeacherScheduleUseCase
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 
 class TeacherScheduleViewModel(
     private val getTodayUseCase: GetTodayUseCase,
     private val getDatesAroundTodayUseCase: GetDatesAroundTodayUseCase,
-    private val getTeacherScheduleUseCase: GetTeacherScheduleUseCase
+    private val getTeacherScheduleUseCase: GetTeacherScheduleUseCase,
+    private val preferencesRepository: TeacherPreferencesRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow<State>(State.Initial)
     val state: StateFlow<State> = _state
 
     private val teacherGroup = Group(-1, "Преподаватель")
+
+    init {
+        viewModelScope.launch {
+            preferencesRepository.getSubscriptionsFlow()
+                .drop(1) // Пропускаем начальное значение, так как оно загрузится в loadInitialData
+                .collect {
+                    reloadCurrentSchedule()
+                }
+        }
+    }
 
     fun loadInitialData() {
         if (_state.value != State.Initial) return

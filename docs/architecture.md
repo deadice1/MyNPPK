@@ -30,7 +30,7 @@ flowchart TD
     Koin["Koin DI Container\n(Composition Root)"]
     Auth["AuthRepository\nСессия и профиль"]
     Network["NetworkModule\n(Retrofit Clients)"]
-
+    
     subgraph Modules ["Внешние модули (external_modules)"]
         Schedule[":feature-schedule\nРасписание"]
         Map[":module-map\nКарта корпусов"]

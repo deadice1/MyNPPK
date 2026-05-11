@@ -15,14 +15,23 @@ class LoginViewModel(private val authRepository: AuthRepository) : ViewModel() {
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
 
-    fun login(login: String, password: String, onSuccess: () -> Unit) {
+    fun login(
+        login: String, 
+        password: String, 
+        onSuccess: () -> Unit,
+        onTeacherFirstLogin: () -> Unit
+    ) {
         viewModelScope.launch {
             _isLoading.value = true
             _error.value = null
             try {
                 val success = authRepository.login(login, password)
                 if (success) {
-                    onSuccess()
+                    if (authRepository.isTeacherFirstLogin()) {
+                        onTeacherFirstLogin()
+                    } else {
+                        onSuccess()
+                    }
                 } else {
                     _error.value = "Неверный логин или пароль"
                 }

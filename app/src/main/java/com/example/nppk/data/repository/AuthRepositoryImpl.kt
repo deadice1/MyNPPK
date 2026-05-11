@@ -138,6 +138,17 @@ class AuthRepositoryImpl(
             .remove("user_fullname")
             .remove("user_role")
             .remove("user_group")
+            .remove("teacher_first_login_completed") // Сбрасываем при выходе
             .commit()
+    }
+
+    override fun isTeacherFirstLogin(): Boolean {
+        val role = getCachedRole()
+        val completed = prefs.getBoolean("teacher_first_login_completed", false)
+        return role == "Преподаватель" && !completed
+    }
+
+    override fun setTeacherFirstLoginCompleted() {
+        prefs.edit().putBoolean("teacher_first_login_completed", true).apply()
     }
 }

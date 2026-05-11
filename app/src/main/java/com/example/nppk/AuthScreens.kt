@@ -34,6 +34,7 @@ import org.koin.androidx.compose.koinViewModel
 fun LoginScreen(
     onLogin: () -> Unit,
     onLoginAsGuest: () -> Unit,
+    onTeacherFirstLogin: () -> Unit,
     viewModel: LoginViewModel = koinViewModel()
 ) {
     val loginState = remember { mutableStateOf("") }
@@ -89,7 +90,12 @@ fun LoginScreen(
 
         Button(
             onClick = {
-                viewModel.login(loginState.value, passwordState.value, onLogin)
+                viewModel.login(
+                    loginState.value, 
+                    passwordState.value, 
+                    onSuccess = onLogin,
+                    onTeacherFirstLogin = onTeacherFirstLogin
+                )
             },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp), // Делаем закругление как у полей ввода

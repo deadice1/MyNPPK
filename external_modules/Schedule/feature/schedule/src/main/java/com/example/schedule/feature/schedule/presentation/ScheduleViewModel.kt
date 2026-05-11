@@ -49,6 +49,12 @@ class ScheduleViewModel(
             }
             val scheduleStateList = createInitialScheduleStates()
 
+            val initialGroup = if (mainGroup.isNotEmpty()) {
+                selectedGroupList.find { it.name.trim().equals(mainGroup.trim(), ignoreCase = true) } ?: selectedGroupList.first()
+            } else {
+                selectedGroupList.first()
+            }
+
             val dateToSelect = try {
                 targetDateFlow.value?.let {
                     LocalDate.parse(it, ofPattern("dd.MM.yyyy"))
@@ -67,7 +73,7 @@ class ScheduleViewModel(
             }
 
             _state.value = State.Content(
-                selectedGroup = selectedGroupList.first(),
+                selectedGroup = initialGroup,
                 scheduleStateList = scheduleStateList,
                 selectedScheduleIndex = safeIndex,
                 selectedGroupList = selectedGroupList,

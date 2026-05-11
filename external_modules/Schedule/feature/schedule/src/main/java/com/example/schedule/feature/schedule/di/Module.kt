@@ -20,7 +20,8 @@ val featureScheduleModule = module {
         TeacherScheduleViewModel(
             getTodayUseCase = get(),
             getDatesAroundTodayUseCase = get(),
-            getTeacherScheduleUseCase = get()
+            getTeacherScheduleUseCase = get(),
+            preferencesRepository = get()
         )
     }
 

@@ -19,6 +19,7 @@ class NPPKApp : Application() {
 
         // Запускаем Koin, используя модули из проекта Schedule
         startKoin {
+            allowOverride(true)
             androidContext(this@NPPKApp)
 
             val appModule = module {

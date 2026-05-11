@@ -20,4 +20,10 @@ interface AuthRepository {
 
     // Выход из аккаунта
     suspend fun logout()
+
+    // Проверка, является ли этот вход первым для преподавателя
+    fun isTeacherFirstLogin(): Boolean
+
+    // Отметить, что первый вход преподавателя завершен
+    fun setTeacherFirstLoginCompleted()
 }

@@ -62,7 +62,7 @@ fun Header(
                 modifier = Modifier
                     .align(Alignment.Center)
                     .clip(RoundedCornerShape(8.dp))
-                    .clickable { onGroupSelectionClick() }
+                    .clickable(enabled = groupName != "Преподаватель") { onGroupSelectionClick() }
                     .padding(4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -71,15 +71,17 @@ fun Header(
                     style = ScheduleTheme.typography.h2,
                     color = ScheduleTheme.colors.textPrimary,
                 )
-                Spacer(modifier = Modifier.width(8.dp))
-                Image(
-                    painter = painterResource(arrowIcon),
-                    contentDescription = "Select Group"
-                )
+                if (groupName != "Преподаватель") {
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Image(
+                        painter = painterResource(arrowIcon),
+                        contentDescription = "Select Group"
+                    )
+                }
             }
 
             // Шестеренка с правого края
-            if (onSettingsClick != null) {
+            if (onSettingsClick != null && groupName != "Преподаватель") {
                 IconButton(
                     onClick = onSettingsClick,
                     modifier = Modifier.align(Alignment.CenterEnd)
