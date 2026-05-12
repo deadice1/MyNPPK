@@ -36,6 +36,8 @@ import androidx.compose.ui.platform.LocalContext
 fun SettingsScreen(
     isDarkTheme: Boolean,
     onDarkThemeChange: (Boolean) -> Unit,
+    isNotificationsEnabled: Boolean,
+    onNotificationsEnabledChange: (Boolean) -> Unit,
     onLogout: () -> Unit,
     onOpenMyGroups: () -> Unit,
     viewModel: SettingsViewModel = koinViewModel()
@@ -185,6 +187,8 @@ fun SettingsScreen(
         // --- СИСТЕМНЫЕ НАСТРОЙКИ ---
         Text(text = "Системные настройки", style = ScheduleTheme.typography.bodyMain, color = ScheduleTheme.colors.textPrimary)
         Spacer(modifier = Modifier.height(16.dp))
+        
+        // Темная тема
         Row(
             modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -197,6 +201,25 @@ fun SettingsScreen(
             Switch(
                 checked = isDarkTheme,
                 onCheckedChange = { onDarkThemeChange(it) },
+                colors = SwitchDefaults.colors(checkedThumbColor = ScheduleTheme.colors.accent)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Уведомления
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text("Уведомления", style = ScheduleTheme.typography.bodyMain, color = ScheduleTheme.colors.textPrimary)
+                Text("Получать уведомления о расписании", style = ScheduleTheme.typography.bodySecondary, color = ScheduleTheme.colors.textSecondary)
+            }
+            Switch(
+                checked = isNotificationsEnabled,
+                onCheckedChange = { onNotificationsEnabledChange(it) },
                 colors = SwitchDefaults.colors(checkedThumbColor = ScheduleTheme.colors.accent)
             )
         }

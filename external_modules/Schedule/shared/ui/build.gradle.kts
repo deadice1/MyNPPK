@@ -6,6 +6,7 @@ plugins {
 
 dependencies {
     implementation(libs.material3)
+    implementation(libs.androidx.core.ktx)
     implementation(project(":shared-group"))
 }
 

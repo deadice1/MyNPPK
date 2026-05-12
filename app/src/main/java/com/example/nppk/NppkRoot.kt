@@ -72,7 +72,10 @@ import com.example.nppk.ui.theme.scheduleTypographyFromMaterial
 import com.example.schedule.shared.ui.ui.theme.ProvideScheduleTheme
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import com.example.nppk.data.repository.AuthRepository
+import com.example.schedule.shared.ui.util.NotificationHelper
 
 enum class AuthMode {
     UNAUTHENTICATED,
@@ -105,7 +108,23 @@ fun NppkMainContent() {
     val context = LocalContext.current
     val view = LocalView.current
 
+    // Запрос разрешений на уведомления для Android 13+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        val launcher = rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.RequestPermission()
+        ) { isGranted ->
+            if (!isGranted) {
+                Toast.makeText(context, "Без разрешения уведомления приходить не будут", Toast.LENGTH_SHORT).show()
+            }
+        }
+        
+        LaunchedEffect(Unit) {
+            launcher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+        }
+    }
+
     var isDarkTheme by rememberSaveable { mutableStateOf(readDarkThemePreference(context)) }
+    var isNotificationsEnabled by rememberSaveable { mutableStateOf(readNotificationsEnabledPreference(context)) }
     val authRepository: AuthRepository = koinInject()
     var authMode by rememberSaveable { 
         mutableStateOf(
@@ -183,6 +202,12 @@ fun NppkMainContent() {
                     onDarkThemeChange = { enabled ->
                         isDarkTheme = enabled
                         saveDarkThemePreference(context, enabled)
+                        showThemeChangeNotification(context, enabled)
+                    },
+                    isNotificationsEnabled = isNotificationsEnabled,
+                    onNotificationsEnabledChange = { enabled ->
+                        isNotificationsEnabled = enabled
+                        saveNotificationsEnabledPreference(context, enabled)
                     },
                     onLogout = {
                         authMode = AuthMode.UNAUTHENTICATED
@@ -204,11 +229,16 @@ data class BottomNavItem(
 
 private const val PREFS_NAME = "nppk_prefs"
 private const val KEY_DARK_THEME = "dark_theme_enabled"
+private const val KEY_NOTIFICATIONS_ENABLED = "notifications_enabled"
 private const val KEY_IS_LOGGED_IN = "is_logged_in"
 
 fun readDarkThemePreference(context: Context): Boolean =
     context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         .getBoolean(KEY_DARK_THEME, false)
+
+fun readNotificationsEnabledPreference(context: Context): Boolean =
+    context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        .getBoolean(KEY_NOTIFICATIONS_ENABLED, true)
 
 fun readIsLoggedIn(context: Context): Boolean =
     context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -217,6 +247,21 @@ fun readIsLoggedIn(context: Context): Boolean =
 private fun saveDarkThemePreference(context: Context, enabled: Boolean) {
     context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         .edit().putBoolean(KEY_DARK_THEME, enabled).apply()
+}
+
+private fun saveNotificationsEnabledPreference(context: Context, enabled: Boolean) {
+    context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        .edit().putBoolean(KEY_NOTIFICATIONS_ENABLED, enabled).apply()
+}
+
+fun showThemeChangeNotification(context: Context, isDark: Boolean) {
+    val themeName = if (isDark) "Тёмная" else "Светлая"
+    NotificationHelper.showNotification(
+        context = context,
+        title = "Тема изменена",
+        message = "Установлена $themeName тема оформления",
+        notificationId = 1
+    )
 }
 
 // Хранит направление последнего перехода — нужно для анимации слайда
@@ -230,6 +275,8 @@ fun MainScaffold(
     onGuestMapOpened: () -> Unit,
     isDarkTheme: Boolean,
     onDarkThemeChange: (Boolean) -> Unit,
+    isNotificationsEnabled: Boolean,
+    onNotificationsEnabledChange: (Boolean) -> Unit,
     onLogout: () -> Unit
 ) {
     val navItems: List<BottomNavItem> =
@@ -355,6 +402,8 @@ fun MainScaffold(
                             else -> SettingsScreen(
                                 isDarkTheme = isDarkTheme,
                                 onDarkThemeChange = onDarkThemeChange,
+                                isNotificationsEnabled = isNotificationsEnabled,
+                                onNotificationsEnabledChange = onNotificationsEnabledChange,
                                 onLogout = { onLogout() },
                                 onOpenMyGroups = { isMyGroupsVisible = true }
                             )
