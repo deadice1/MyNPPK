@@ -119,12 +119,11 @@ fun StudentsScreen(
         }
     }
 
-    // Диалог добавления студента
     if (showAddDialog) {
         StudentDialog(
             title = "Добавить студента",
             initialName = "",
-            onConfirm = { name ->  // Только один параметр - имя
+            onConfirm = { name ->
                 scope.launch {
                     apiClient.createStudent(name, userId = 0, groupId = groupId)
                     loadStudents()
@@ -135,14 +134,13 @@ fun StudentsScreen(
         )
     }
 
-    // Диалог редактирования студента
     if (showEditDialog && selectedStudent != null) {
         StudentDialog(
             title = "Редактировать студента",
             initialName = selectedStudent!!.name,
             initialCount = selectedStudent!!.countDuty,
             canEditCount = userRole.canEditStudentData(),
-            onConfirm = { name, countDuty ->  // Два параметра - имя и количество дежурств
+            onConfirm = { name, countDuty ->
                 scope.launch {
                     val countToUpdate = if (userRole.canEditStudentData()) countDuty else selectedStudent!!.countDuty
                     apiClient.updateStudent(selectedStudent!!.id, name, countToUpdate)
@@ -227,7 +225,7 @@ fun StudentDialog(
     initialName: String,
     initialCount: Int = 0,
     canEditCount: Boolean = false,
-    onConfirm: (name: String, countDuty: Int) -> Unit,  // Всегда ожидает 2 параметра
+    onConfirm: (name: String, countDuty: Int) -> Unit,
     onDismiss: () -> Unit
 ) {
     var name by remember { mutableStateOf(initialName) }
@@ -274,7 +272,6 @@ fun StudentDialog(
     )
 }
 
-// Перегрузка для диалога добавления (только имя)
 @Composable
 fun StudentDialog(
     title: String,

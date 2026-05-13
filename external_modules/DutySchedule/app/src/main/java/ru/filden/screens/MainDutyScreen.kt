@@ -31,7 +31,6 @@ fun MainDutyScreen(
 
     val scope = rememberCoroutineScope()
 
-    // Загрузка данных
     LaunchedEffect(groupId) {
         scope.launch {
             isLoading = true
@@ -114,7 +113,6 @@ fun MainDutyScreen(
                             secondStudentId = currentDuty?.second?.id
                         )
                         if (success) {
-                            // Обновляем данные
                             currentDuty = apiClient.getCurrentDuty(groupId)
                             students = apiClient.getStudentsByGroup(groupId)
                         } else {

@@ -18,7 +18,6 @@ data class ApiUser(
     val role: Int
 )
 
-// Студент
 data class ApiStudent(
     val id: Int,
     val name: String,
@@ -28,13 +27,11 @@ data class ApiStudent(
     @SerializedName("is_duty") val isDuty: Boolean = false
 )
 
-// Группа
 data class ApiGroup(
     val id: Int,
     val name: String
 )
 
-// История дежурств
 data class ApiDutyHistory(
     val id: Int,
     @SerializedName("first_student_id") val firstStudentId: Int,
@@ -45,21 +42,18 @@ data class ApiDutyHistory(
     @SerializedName("second_student_name") val secondStudentName: String? = null
 )
 
-// Преподаватель
 data class ApiTeacher(
     val id: Int,
     val name: String,
     @SerializedName("user_id") val userId: Int
 )
 
-// Связь преподаватель-группа
 data class ApiTeacherGroup(
     val id: Int,
     @SerializedName("teacher_id") val teacherId: Int,
     @SerializedName("group_id") val groupId: Int
 )
 
-// Текущие дежурные (кастомный эндпоинт)
 data class ApiCurrentDuty(
     @SerializedName("first_student_id") val firstStudentId: Int,
     @SerializedName("second_student_id") val secondStudentId: Int?,
@@ -67,7 +61,6 @@ data class ApiCurrentDuty(
     @SerializedName("second_student_name") val secondStudentName: String?
 )
 
-// Запрос на создание/обновление студента
 data class CreateStudentRequest(
     val name: String,
     @SerializedName("user_id") val userId: Int,
@@ -79,14 +72,12 @@ data class UpdateStudentRequest(
     @SerializedName("count_duty") val countDuty: Int
 )
 
-// Запрос на завершение дежурства
 data class CompleteDutyRequest(
     @SerializedName("first_student_id") val firstStudentId: Int,
     @SerializedName("second_student_id") val secondStudentId: Int?,
     @SerializedName("group_id") val groupId: Int
 )
 
-// Локальные модели для UI
 data class Student(
     val id: Int,
     val name: String,
@@ -106,7 +97,7 @@ data class DutyHistoryRecord(
     val date: String
 )
 
-// Роли пользователя (1-student, 2-headman, 3-teacher, 4-admin)
+// (1-student, 2-headman, 3-teacher, 4-admin)
 enum class UserRole(val apiValue: Int, val displayName: String, val description: String) {
     STUDENT(1, "Студент", "Только просмотр"),
     HEADMAN(2, "Староста", "Выбор дежурных + управление студентами"),
@@ -123,8 +114,6 @@ enum class UserRole(val apiValue: Int, val displayName: String, val description:
         }
     }
 }
-
-// Расширения для прав доступа
 fun UserRole.canSelectDuty(): Boolean =
     this == UserRole.HEADMAN || this == UserRole.TEACHER || this == UserRole.ADMIN
 

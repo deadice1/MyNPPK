@@ -36,7 +36,6 @@ fun DutyModule(
 
     val scope = rememberCoroutineScope()
 
-    // Загрузка данных пользователя
     LaunchedEffect(userId) {
         scope.launch {
             val role = apiClient.getUserRole(userId)
