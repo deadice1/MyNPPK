@@ -398,7 +398,7 @@ fun MainScaffold(
                         AuthMode.AUTHENTICATED -> when (page) {
                             0 -> ScheduleModuleScreen()
                             1 -> MapModuleScreen()
-                            2 -> DutyScheduleModuleScreen()
+                            2 -> DutyScheduleModuleScreen(LocalContext.current)
                             else -> SettingsScreen(
                                 isDarkTheme = isDarkTheme,
                                 onDarkThemeChange = onDarkThemeChange,

@@ -27,9 +27,8 @@ import com.example.schedule.libs.navigation.BackstackNavigator
 import com.example.schedule.shared.ui.ui.theme.ScheduleTheme
 import org.koin.compose.koinInject
 import com.example.nppk.data.repository.AuthRepository
-import ru.filden.MainApp
-import ru.filden.logic.ScheduleController
-import ru.filden.logic.UserRole
+import ru.filden.DutyModule
+
 
 /**
  * Экран с расписанием (подключен напрямую к модулю Schedule).
@@ -182,13 +181,8 @@ private fun inflateMapRoot(ctx: Context): View {
  * Экран дежурств (используем Compose-функции из модуля DutySchedule).
  */
 @Composable
-fun DutyScheduleModuleScreen() {
-    val controller = remember { ScheduleController() }
+fun DutyScheduleModuleScreen(ctx: Context) {
+    DutyModule(ctx.getSharedPreferences("nppk_prefs",Context.MODE_PRIVATE).getInt("user_id", 1),"http://80.89.199.85:8081")
 
-    MainApp(
-        controller = controller,
-        initialGroup = "1",
-        userRole = UserRole.STUDENT,
-    )
 }
 
