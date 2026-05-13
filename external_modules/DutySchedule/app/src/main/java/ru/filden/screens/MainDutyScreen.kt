@@ -203,7 +203,7 @@ fun StudentSelector(
                     DropdownMenuItem(
                         text = { Text("Не выбран") },
                         onClick = {
-                            onStudentSelected?.invoke(Student(0, "Не выбран", 0, 0))
+                            onStudentSelected?.invoke(Student(0, 0,"Не выбран", 0, 0))
                             expanded = false
                         }
                     )

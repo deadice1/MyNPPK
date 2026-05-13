@@ -44,7 +44,8 @@ fun DutyModule(
             if (role != null) {
                 val groups = apiClient.getAvailableGroupsForUser(userId, role)
                 availableGroups = groups
-                currentGroupId = groups.firstOrNull()?.id
+                val student = apiClient.getStudentById(userId)
+                currentGroupId = student?.groupId
             }
             isLoading = false
         }

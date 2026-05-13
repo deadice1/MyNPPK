@@ -22,7 +22,7 @@ data class ApiStudent(
     val id: Int,
     val name: String,
     @SerializedName("user_id") val userId: Int,
-    @SerializedName("group_id") val groupId: Int,
+    @SerializedName("group_h") val groupId: Int,
     @SerializedName("count_duty") val countDuty: Int,
     @SerializedName("is_duty") val isDuty: Boolean = false
 )
@@ -80,6 +80,7 @@ data class CompleteDutyRequest(
 
 data class Student(
     val id: Int,
+    val user_id:Int,
     val name: String,
     val countDuty: Int,
     val groupId: Int
