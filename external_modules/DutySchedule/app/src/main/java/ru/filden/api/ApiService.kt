@@ -1,9 +1,8 @@
+
 package ru.filden.api
 
-import com.google.gson.Gson
-import com.google.gson.GsonBuilder
 import io.ktor.client.*
-import io.ktor.client.call.body
+import io.ktor.client.call.*
 import io.ktor.client.engine.android.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.logging.*
@@ -25,10 +24,6 @@ class ApiClient(private val baseUrl: String) {
             }
         }
     }
-
-    private val gson: Gson = GsonBuilder()
-        .setDateFormat("yyyy-MM-dd HH:mm:ss")
-        .create()
 
     // ========== Пользователи ==========
 
@@ -76,7 +71,17 @@ class ApiClient(private val baseUrl: String) {
     }
 
     // ========== Студенты ==========
-
+    suspend fun getStudentById(userId: Int): ApiStudent?{
+        return withContext(Dispatchers.IO){
+            try {
+                val response: ApiBaseResponse<ApiStudent> = client.get("$baseUrl/api/students/user/$userId").body()
+                if (response.status == "success") response.data else null
+            } catch (e: Exception) {
+                e.printStackTrace()
+                null
+            }
+        }
+    }
     suspend fun getStudentsByGroup(groupId: Int): List<Student> {
         return withContext(Dispatchers.IO) {
             try {
@@ -87,7 +92,8 @@ class ApiClient(private val baseUrl: String) {
                         id = apiStudent.id,
                         name = apiStudent.name,
                         countDuty = apiStudent.countDuty,
-                        groupId = apiStudent.groupId
+                        groupId = apiStudent.groupId,
+                        user_id = apiStudent.userId
                     )
                 } ?: emptyList()
             } catch (e: Exception) {
@@ -107,7 +113,8 @@ class ApiClient(private val baseUrl: String) {
                         id = apiStudent.id,
                         name = apiStudent.name,
                         countDuty = apiStudent.countDuty,
-                        groupId = apiStudent.groupId
+                        groupId = apiStudent.groupId,
+                        user_id = apiStudent.userId
                     )
                 } ?: emptyList()
             } catch (e: Exception) {
@@ -130,7 +137,8 @@ class ApiClient(private val baseUrl: String) {
                         id = apiStudent.id,
                         name = apiStudent.name,
                         countDuty = apiStudent.countDuty,
-                        groupId = apiStudent.groupId
+                        groupId = apiStudent.groupId,
+                        user_id = apiStudent.userId
                     )
                 }
             } catch (e: Exception) {
@@ -186,25 +194,20 @@ class ApiClient(private val baseUrl: String) {
     suspend fun getCurrentDuty(groupId: Int): DutyPair? {
         return withContext(Dispatchers.IO) {
             try {
-                val response: ApiBaseResponse<ApiCurrentDuty> =
-                    client.get("$baseUrl/api/duty/current/$groupId").body()
-                if (response.status == "success" && response.data != null) {
-                    val first = Student(
-                        id = response.data.firstStudentId,
-                        name = response.data.firstStudentName,
-                        countDuty = 0,
-                        groupId = groupId
+                val response: ApiBaseResponse<List<ApiStudent>> =
+                    client.get("$baseUrl/api/students/duty/current/$groupId").body()
+
+                val students = response.data?.map { apiStudent ->
+                    Student(
+                        id = apiStudent.id,
+                        name = apiStudent.name,
+                        countDuty = apiStudent.countDuty,
+                        groupId = apiStudent.groupId,
+                        user_id = apiStudent.userId
                     )
-                    val second = response.data.secondStudentId?.let { studentId ->
-                        Student(
-                            id = studentId,
-                            name = response.data.secondStudentName ?: "",
-                            countDuty = 0,
-                            groupId = groupId
-                        )
-                    }
-                    DutyPair(first, second)
-                } else null
+                } ?: emptyList()
+                val current: DutyPair = DutyPair(students[0], students[1])
+                    current
             } catch (e: Exception) {
                 e.printStackTrace()
                 null
@@ -256,19 +259,24 @@ class ApiClient(private val baseUrl: String) {
                 val response: ApiBaseResponse<List<ApiDutyHistory>> =
                     client.get("$baseUrl/api/duty-histories/group/$groupId").body()
                 response.data?.map { history ->
-                    val firstStudent = Student(
-                        id = history.firstStudentId,
-                        name = history.firstStudentName ?: "Студент ${history.firstStudentId}",
-                        countDuty = 0,
-                        groupId = groupId
-                    )
-                    val secondStudent = history.secondStudentId?.let { studentId ->
-                        Student(
-                            id = studentId,
-                            name = history.secondStudentName ?: "Студент $studentId",
+                    val students = getStudentsByGroup(groupId)
+                    val firstStudent = students.find { it.id == history.firstStudentId }
+                        ?: Student(
+                            id = history.firstStudentId,
+                            name = history.firstStudentName ?: "Студент ${history.firstStudentId}",
                             countDuty = 0,
-                            groupId = groupId
+                            groupId = groupId,
+                            user_id = history.firstStudentId
                         )
+                    val secondStudent = history.secondStudentId?.let { studentId ->
+                        students.find { it.id == studentId }
+                            ?: Student(
+                                id = studentId,
+                                name = history.secondStudentName ?: "Студент $studentId",
+                                countDuty = 0,
+                                groupId = groupId,
+                                user_id = history.secondStudentId
+                            )
                     }
                     DutyHistoryRecord(
                         id = history.id,
@@ -305,9 +313,9 @@ class ApiClient(private val baseUrl: String) {
         return when (userRole) {
             UserRole.ADMIN -> getAllGroups()
             UserRole.TEACHER -> {
-                val groups = getAllGroups()
+                val allGroups = getAllGroups()
                 val teacherGroups = getTeacherGroups(userId)
-                groups.filter { teacherGroups.contains(it.id) }
+                allGroups.filter { teacherGroups.contains(it.id) }
             }
             else -> getAllGroups()
         }
