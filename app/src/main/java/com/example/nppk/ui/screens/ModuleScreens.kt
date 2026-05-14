@@ -29,7 +29,6 @@ import org.koin.compose.koinInject
 import com.example.nppk.data.repository.AuthRepository
 import ru.filden.DutyModule
 
-
 /**
  * Экран с расписанием (подключен напрямую к модулю Schedule).
  */
@@ -37,7 +36,7 @@ import ru.filden.DutyModule
 fun ScheduleModuleScreen() {
     val navigator: BackstackNavigator = koinInject(qualifier = GlobalBackstackNavigatorQualifier)
     val authRepository: AuthRepository = koinInject()
-    val isTeacherRole = remember { authRepository.getCachedRole() == "Преподаватель" }
+    val isTeacherRole = remember { authRepository.getCachedRole() == com.example.nppk.data.model.UserRole.TEACHER }
 
     LaunchedEffect(navigator) {
         navigator.popToRoot()
@@ -108,63 +107,39 @@ fun MapModuleScreen() {
 
             floorWebView.setBackgroundColor(surfaceColor)
             floorWebView.clipToOutline = true
-            (floorWebView.parent as? MaterialCardView)?.apply {
+            
+            // Находим MaterialCardView, который является родителем FloorMapContainer
+            val mapContainer = rootView.findViewById<com.example.coll.map.FloorMapContainer>(com.example.coll.R.id.floorMapContainer)
+            (mapContainer?.parent as? MaterialCardView)?.apply {
                 setCardBackgroundColor(surfaceColor)
                 radius = 24f
                 strokeColor = dividerColor
                 strokeWidth = 2
             }
 
-            floorWebView.settings.apply {
-                javaScriptEnabled = true
-                builtInZoomControls = true
-                displayZoomControls = false
-                loadWithOverviewMode = true
-                useWideViewPort = true
-                setSupportZoom(true)
-            }
-            floorWebView.setInitialScale(1)
-            floorWebView.isVerticalScrollBarEnabled = false
-            floorWebView.isHorizontalScrollBarEnabled = false
-
-            floorWebView.webViewClient = object : WebViewClient() {
-                override fun onPageFinished(view: WebView?, url: String?) {
-                    super.onPageFinished(view, url)
-                    view?.evaluateJavascript(
-                        """
-                            (function() {
-                                var svg = document.querySelector('svg');
-                                if (svg) {
-                                    svg.setAttribute('width', '100%');
-                                    svg.setAttribute('height', '100%');
-                                    // Stretch to fill available width/height, removing side gaps.
-                                    svg.setAttribute('preserveAspectRatio', 'none');
-                                }
-                            })();
-                        """.trimIndent(),
-                        null
-                    )
-                }
-            }
-
-            fun loadFloor(title: String, assetFile: String) {
+            fun loadFloor(title: String) {
                 floorTitleText.text = title
-                floorWebView.loadUrl("file:///android_asset/$assetFile")
             }
 
             floorToggleGroup.addOnButtonCheckedListener { _, checkedId, isChecked ->
                 if (!isChecked) return@addOnButtonCheckedListener
                 applyFloorButtonState(checkedId)
                 when (checkedId) {
-                    com.example.coll.R.id.btnFloorBasement -> loadFloor("Подвал", "floor_basement.svg")
-                    com.example.coll.R.id.btnFloor1 -> loadFloor("1 этаж", "floor1.svg")
-                    com.example.coll.R.id.btnFloor2 -> loadFloor("2 этаж", "floor2.svg")
-                    com.example.coll.R.id.btnFloor3 -> loadFloor("3 этаж", "floor3.svg")
+                    com.example.coll.R.id.btnFloorBasement -> loadFloor("Подвал")
+                    com.example.coll.R.id.btnFloor1 -> loadFloor("1 этаж")
+                    com.example.coll.R.id.btnFloor2 -> loadFloor("2 этаж")
+                    com.example.coll.R.id.btnFloor3 -> loadFloor("3 этаж")
                 }
             }
 
             floorToggleGroup.check(com.example.coll.R.id.btnFloor2)
             applyFloorButtonState(com.example.coll.R.id.btnFloor2)
+            
+            // Используем post и правильный ID для поиска контейнера
+            mapContainer?.post {
+                mapContainer.setFloorAsset("floor2.svg")
+            }
+
             rootView.setTag(com.example.coll.R.id.floorWebView, true)
         },
         modifier = Modifier
@@ -183,6 +158,5 @@ private fun inflateMapRoot(ctx: Context): View {
 @Composable
 fun DutyScheduleModuleScreen(ctx: Context) {
     DutyModule(ctx.getSharedPreferences("nppk_prefs",Context.MODE_PRIVATE).getInt("user_id", 1),"http://80.89.199.85:8081")
-
 }
 

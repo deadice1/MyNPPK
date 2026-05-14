@@ -36,6 +36,13 @@ android {
     kotlinOptions {
         jvmTarget = "11"
     }
+
+    // Исходники лежали в src/main/ja — подключаем и стандартный java, и ja
+    sourceSets {
+        getByName("main") {
+            java.srcDirs("src/main/java", "src/main/ja")
+        }
+    }
 }
 
 dependencies {
@@ -62,6 +69,8 @@ dependencies {
 
     // Другие зависимости
     implementation("com.google.code.gson:gson:2.13.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
 
     // Тесты
     testImplementation(libs.junit)

@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -11,6 +12,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.example.schedule.shared.ui.ui.theme.ScheduleTheme
 import kotlinx.coroutines.launch
 import ru.filden.api.ApiClient
 import ru.filden.api.Student
@@ -47,7 +49,7 @@ fun StudentsScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .background(ScheduleTheme.colors.background)
             .padding(16.dp)
     ) {
         Row(
@@ -57,14 +59,22 @@ fun StudentsScreen(
         ) {
             Text(
                 text = "Список студентов (${students.size})",
-                style = MaterialTheme.typography.headlineMedium
+                style = ScheduleTheme.typography.h1,
+                color = ScheduleTheme.colors.textPrimary
             )
 
             if (userRole.canManageStudents()) {
-                Button(onClick = { showAddDialog = true }) {
+                Button(
+                    onClick = { showAddDialog = true },
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = ScheduleTheme.colors.accent,
+                        contentColor = ScheduleTheme.colors.background
+                    )
+                ) {
                     Icon(Icons.Default.Add, contentDescription = "Добавить")
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text("Добавить")
+                    Text("Добавить", style = ScheduleTheme.typography.bodyMain)
                 }
             }
         }
@@ -76,14 +86,18 @@ fun StudentsScreen(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                CircularProgressIndicator()
+                CircularProgressIndicator(color = ScheduleTheme.colors.accent)
             }
         } else if (students.isEmpty()) {
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                Text("В группе нет студентов")
+                Text(
+                    "В группе нет студентов",
+                    style = ScheduleTheme.typography.bodyMain,
+                    color = ScheduleTheme.colors.textSecondary
+                )
             }
         } else {
             LazyColumn {
@@ -113,7 +127,7 @@ fun StudentsScreen(
                             }
                         }
                     )
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
                 }
             }
         }
@@ -168,8 +182,10 @@ fun StudentItem(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
+            containerColor = ScheduleTheme.colors.surface
         )
     ) {
         Row(
@@ -184,14 +200,16 @@ fun StudentItem(
             ) {
                 Text(
                     text = student.name,
-                    style = MaterialTheme.typography.titleMedium
+                    style = ScheduleTheme.typography.h2,
+                    color = ScheduleTheme.colors.textPrimary
                 )
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
                         text = "Дежурств: ${student.countDuty}",
-                        style = MaterialTheme.typography.bodyMedium
+                        style = ScheduleTheme.typography.bodyMain,
+                        color = ScheduleTheme.colors.textSecondary
                     )
                     if (canEditCount) {
                         Spacer(modifier = Modifier.width(8.dp))
@@ -199,7 +217,7 @@ fun StudentItem(
                             onClick = onIncrementDuty,
                             modifier = Modifier.size(32.dp)
                         ) {
-                            Icon(Icons.Default.Add, contentDescription = "Увеличить счетчик")
+                            Icon(Icons.Default.Add, contentDescription = "Увеличить счетчик", tint = ScheduleTheme.colors.accent)
                         }
                     }
                 }
@@ -208,10 +226,10 @@ fun StudentItem(
             if (canEdit) {
                 Row {
                     IconButton(onClick = onEdit) {
-                        Icon(Icons.Default.Edit, contentDescription = "Редактировать")
+                        Icon(Icons.Default.Edit, contentDescription = "Редактировать", tint = ScheduleTheme.colors.accent)
                     }
                     IconButton(onClick = onDelete) {
-                        Icon(Icons.Default.Delete, contentDescription = "Удалить")
+                        Icon(Icons.Default.Delete, contentDescription = "Удалить", tint = ScheduleTheme.colors.error)
                     }
                 }
             }
@@ -233,23 +251,48 @@ fun StudentDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(title) },
+        containerColor = ScheduleTheme.colors.surface,
+        title = { Text(title, color = ScheduleTheme.colors.textPrimary, style = ScheduleTheme.typography.h2) },
         text = {
             Column {
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
                     label = { Text("Имя студента") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    textStyle = ScheduleTheme.typography.bodyMain,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = ScheduleTheme.colors.textPrimary,
+                        unfocusedTextColor = ScheduleTheme.colors.textPrimary,
+                        focusedLabelColor = ScheduleTheme.colors.accent,
+                        unfocusedLabelColor = ScheduleTheme.colors.textSecondary,
+                        focusedBorderColor = ScheduleTheme.colors.accent,
+                        unfocusedBorderColor = ScheduleTheme.colors.divider,
+                        focusedContainerColor = ScheduleTheme.colors.surface,
+                        unfocusedContainerColor = ScheduleTheme.colors.surface
+                    )
                 )
 
                 if (canEditCount) {
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
                     OutlinedTextField(
                         value = countDuty.toString(),
                         onValueChange = { countDuty = it.toIntOrNull() ?: 0 },
                         label = { Text("Количество дежурств") },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        textStyle = ScheduleTheme.typography.bodyMain,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = ScheduleTheme.colors.textPrimary,
+                            unfocusedTextColor = ScheduleTheme.colors.textPrimary,
+                            focusedLabelColor = ScheduleTheme.colors.accent,
+                            unfocusedLabelColor = ScheduleTheme.colors.textSecondary,
+                            focusedBorderColor = ScheduleTheme.colors.accent,
+                            unfocusedBorderColor = ScheduleTheme.colors.divider,
+                            focusedContainerColor = ScheduleTheme.colors.surface,
+                            unfocusedContainerColor = ScheduleTheme.colors.surface
+                        )
                     )
                 }
             }
@@ -259,14 +302,19 @@ fun StudentDialog(
                 onClick = {
                     onConfirm(name, if (canEditCount) countDuty else initialCount)
                 },
-                enabled = name.isNotBlank()
+                enabled = name.isNotBlank(),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = ScheduleTheme.colors.accent,
+                    contentColor = ScheduleTheme.colors.background
+                )
             ) {
-                Text("Сохранить")
+                Text("Сохранить", style = ScheduleTheme.typography.bodyMain)
             }
         },
         dismissButton = {
-            Button(onClick = onDismiss) {
-                Text("Отмена")
+            TextButton(onClick = onDismiss) {
+                Text("Отмена", color = ScheduleTheme.colors.textSecondary, style = ScheduleTheme.typography.bodyMain)
             }
         }
     )

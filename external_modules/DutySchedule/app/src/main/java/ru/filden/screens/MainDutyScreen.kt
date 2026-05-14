@@ -8,6 +8,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.example.schedule.shared.ui.ui.theme.ScheduleTheme
 import kotlinx.coroutines.launch
 import ru.filden.api.ApiClient
 import ru.filden.api.DutyPair
@@ -43,13 +44,14 @@ fun MainDutyScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .background(ScheduleTheme.colors.background)
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
             text = "Текущая пара дежурных",
-            style = MaterialTheme.typography.headlineMedium,
+            style = ScheduleTheme.typography.h1,
+            color = ScheduleTheme.colors.textPrimary,
             modifier = Modifier.padding(vertical = 20.dp)
         )
 
@@ -58,7 +60,7 @@ fun MainDutyScreen(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                CircularProgressIndicator()
+                CircularProgressIndicator(color = ScheduleTheme.colors.accent)
             }
             return@Column
         }
@@ -123,21 +125,29 @@ fun MainDutyScreen(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp)
+                    .height(56.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = ScheduleTheme.colors.accent,
+                    contentColor = ScheduleTheme.colors.background
+                )
             ) {
-                Text("Отметить дежурство")
+                Text("Отметить дежурство", style = ScheduleTheme.typography.bodyMain)
             }
         } else {
             Card(
                 modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant
-                )
+                    containerColor = ScheduleTheme.colors.surface
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
             ) {
                 Text(
                     text = "Только просмотр. Для подтверждения дежурства нужны права старосты, преподавателя или администратора.",
                     modifier = Modifier.padding(16.dp),
-                    style = MaterialTheme.typography.bodyMedium
+                    style = ScheduleTheme.typography.bodySecondary,
+                    color = ScheduleTheme.colors.textPrimary
                 )
             }
         }
@@ -146,11 +156,12 @@ fun MainDutyScreen(
     if (showError) {
         AlertDialog(
             onDismissRequest = { showError = false },
-            title = { Text("Ошибка") },
-            text = { Text(errorMessage) },
+            title = { Text("Ошибка", color = ScheduleTheme.colors.textPrimary) },
+            text = { Text(errorMessage, color = ScheduleTheme.colors.textSecondary) },
+            containerColor = ScheduleTheme.colors.surface,
             confirmButton = {
-                Button(onClick = { showError = false }) {
-                    Text("OK")
+                TextButton(onClick = { showError = false }) {
+                    Text("OK", color = ScheduleTheme.colors.accent)
                 }
             }
         )
@@ -171,7 +182,8 @@ fun StudentSelector(
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = label,
-            style = MaterialTheme.typography.bodyMedium,
+            style = ScheduleTheme.typography.bodySecondary,
+            color = ScheduleTheme.colors.textSecondary,
             modifier = Modifier.padding(start = 4.dp, bottom = 8.dp)
         )
 
@@ -188,20 +200,42 @@ fun StudentSelector(
                         ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
                     }
                 },
+                textStyle = ScheduleTheme.typography.bodyMain,
                 modifier = Modifier
                     .fillMaxWidth()
                     .menuAnchor(),
                 enabled = !readOnly,
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = ScheduleTheme.colors.textPrimary,
+                    unfocusedTextColor = ScheduleTheme.colors.textPrimary,
+                    disabledTextColor = ScheduleTheme.colors.textPrimary,
+                    focusedLabelColor = ScheduleTheme.colors.accent,
+                    unfocusedLabelColor = ScheduleTheme.colors.textSecondary,
+                    disabledLabelColor = ScheduleTheme.colors.textSecondary,
+                    focusedBorderColor = ScheduleTheme.colors.accent,
+                    unfocusedBorderColor = ScheduleTheme.colors.divider,
+                    disabledBorderColor = ScheduleTheme.colors.divider,
+                    focusedContainerColor = ScheduleTheme.colors.surface,
+                    unfocusedContainerColor = ScheduleTheme.colors.surface,
+                    disabledContainerColor = ScheduleTheme.colors.surface
+                )
             )
 
             if (!readOnly) {
                 ExposedDropdownMenu(
                     expanded = expanded,
-                    onDismissRequest = { expanded = false }
+                    onDismissRequest = { expanded = false },
+                    modifier = Modifier.background(ScheduleTheme.colors.surface)
                 ) {
                     DropdownMenuItem(
-                        text = { Text("Не выбран") },
+                        text = { 
+                            Text(
+                                "Не выбран",
+                                style = ScheduleTheme.typography.bodyMain,
+                                color = ScheduleTheme.colors.textPrimary
+                            ) 
+                        },
                         onClick = {
                             onStudentSelected?.invoke(Student(0, 0,"Не выбран", 0, 0))
                             expanded = false
@@ -210,7 +244,11 @@ fun StudentSelector(
                     students.forEach { student ->
                         DropdownMenuItem(
                             text = {
-                                Text("${student.name} (дежурств: ${student.countDuty})")
+                                Text(
+                                    "${student.name} (дежурств: ${student.countDuty})",
+                                    style = ScheduleTheme.typography.bodyMain,
+                                    color = ScheduleTheme.colors.textPrimary
+                                )
                             },
                             onClick = {
                                 onStudentSelected?.invoke(student)

@@ -12,32 +12,38 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
+    primary = MapBlueStroke,
+    secondary = TextSecondaryDark,
+    tertiary = MapBlueLight,
+    background = BackgroundDark,
+    surface = SurfaceDark,
+    onPrimary = BackgroundDark,
+    onSecondary = TextPrimaryDark,
+    onTertiary = TextPrimaryDark,
+    onBackground = TextPrimaryDark,
+    onSurface = TextPrimaryDark,
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
-
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
+    primary = MapBlueStroke,
+    secondary = TextSecondary,
+    tertiary = MapBlueLight,
+    background = BackgroundLight,
+    surface = SurfaceLight,
+    onSecondary = TextPrimary,
+    onTertiary = TextPrimary,
+    onBackground = TextPrimary,
+    onSurface = TextPrimary,
 )
+
+// Helper to keep White available if it's not defined in Color.kt
+private val White = androidx.compose.ui.graphics.Color.White
 
 @Composable
 fun DutyScheduleTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    // Dynamic color is disabled to keep our specific "Map" look
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {

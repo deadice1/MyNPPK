@@ -4,11 +4,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.example.schedule.shared.ui.ui.theme.ScheduleTheme
 import kotlinx.coroutines.launch
 import ru.filden.api.ApiClient
 import ru.filden.api.DutyHistoryRecord
@@ -34,12 +36,13 @@ fun HistoryScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .background(ScheduleTheme.colors.background)
             .padding(16.dp)
     ) {
         Text(
             text = "История дежурств",
-            style = MaterialTheme.typography.headlineMedium,
+            style = ScheduleTheme.typography.h1,
+            color = ScheduleTheme.colors.textPrimary,
             modifier = Modifier.padding(bottom = 16.dp)
         )
 
@@ -48,14 +51,14 @@ fun HistoryScreen(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                CircularProgressIndicator()
+                CircularProgressIndicator(color = ScheduleTheme.colors.accent)
             }
         } else if (history.isEmpty()) {
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                Text("История дежурств пуста")
+                Text("История дежурств пуста", color = ScheduleTheme.colors.textSecondary, style = ScheduleTheme.typography.bodyMain)
             }
         } else {
             LazyColumn {
@@ -72,8 +75,10 @@ fun HistoryScreen(
 fun HistoryCard(record: DutyHistoryRecord) {
     Card(
         modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
+            containerColor = ScheduleTheme.colors.surface
         )
     ) {
         Column(
@@ -81,13 +86,15 @@ fun HistoryCard(record: DutyHistoryRecord) {
         ) {
             Text(
                 text = "Дата: ${record.date}",
-                style = MaterialTheme.typography.bodySmall
+                style = ScheduleTheme.typography.bodySecondary,
+                color = ScheduleTheme.colors.textSecondary
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = "Дежурные: ${record.firstStudent.name}" +
                         (record.secondStudent?.let { ", $it" } ?: ""),
-                style = MaterialTheme.typography.bodyLarge
+                style = ScheduleTheme.typography.bodyMain,
+                color = ScheduleTheme.colors.textPrimary
             )
         }
     }
