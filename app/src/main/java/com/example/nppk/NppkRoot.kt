@@ -196,6 +196,7 @@ fun NppkMainContent() {
                 MainScaffold(
                     authMode = authMode,
                     onAuthenticated = { authMode = AuthMode.AUTHENTICATED },
+                    onTeacherFirstLogin = { authMode = AuthMode.SELECTING_GROUPS },
                     openGuestOnMap = openGuestOnMap,
                     onGuestMapOpened = { openGuestOnMap = false },
                     isDarkTheme = isDarkTheme,
@@ -271,6 +272,7 @@ private enum class NavDirection { LEFT, RIGHT }
 fun MainScaffold(
     authMode: AuthMode,
     onAuthenticated: () -> Unit,
+    onTeacherFirstLogin: () -> Unit,
     openGuestOnMap: Boolean,
     onGuestMapOpened: () -> Unit,
     isDarkTheme: Boolean,
@@ -391,7 +393,7 @@ fun MainScaffold(
                             0 -> LoginScreen(
                                 onLogin = { onAuthenticated() },
                                 onLoginAsGuest = { },
-                                onTeacherFirstLogin = { } // Не актуально для гостя
+                                onTeacherFirstLogin = { onTeacherFirstLogin() }
                             )
                             else -> MapModuleScreen()
                         }

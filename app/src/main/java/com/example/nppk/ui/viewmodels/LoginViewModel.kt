@@ -25,7 +25,7 @@ class LoginViewModel(private val authRepository: AuthRepository) : ViewModel() {
             _isLoading.value = true
             _error.value = null
             try {
-                val success = authRepository.login(login, password)
+                val success = authRepository.login(login.trim(), password)
                 if (success) {
                     if (authRepository.isTeacherFirstLogin()) {
                         onTeacherFirstLogin()
