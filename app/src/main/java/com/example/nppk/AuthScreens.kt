@@ -1,32 +1,47 @@
 package com.example.nppk
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.fragment.app.FragmentActivity
 import com.example.nppk.ui.viewmodels.LoginViewModel
+import com.example.nppk.util.BiometricHelper
+import com.example.nppk.util.SecureStorage
 import com.example.schedule.shared.ui.ui.theme.ScheduleTheme
 import org.koin.androidx.compose.koinViewModel
 
@@ -37,11 +52,24 @@ fun LoginScreen(
     onTeacherFirstLogin: () -> Unit,
     viewModel: LoginViewModel = koinViewModel()
 ) {
+    val context = LocalContext.current
+    val activity = context as? FragmentActivity
+
     val loginState = remember { mutableStateOf("") }
     val passwordState = remember { mutableStateOf("") }
 
     val isLoading by viewModel.isLoading.collectAsState()
     val error by viewModel.error.collectAsState()
+
+    var showBiometricButton by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        val savedLogin = SecureStorage.getSavedLogin(context)
+        val savedPass = SecureStorage.getSavedPassword(context)
+        if (savedLogin != null && savedPass != null && BiometricHelper.isBiometricAvailable(context)) {
+            showBiometricButton = true
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -97,8 +125,8 @@ fun LoginScreen(
                     onTeacherFirstLogin = onTeacherFirstLogin
                 )
             },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp), // Делаем закругление как у полей ввода
+            modifier = Modifier.fillMaxWidth().height(48.dp),
+            shape = RoundedCornerShape(12.dp),
             colors = ButtonDefaults.buttonColors(
                 containerColor = ScheduleTheme.colors.accent,
                 disabledContainerColor = ScheduleTheme.colors.surfaceActive
@@ -108,14 +136,13 @@ fun LoginScreen(
             if (isLoading) {
                 CircularProgressIndicator(
                     color = ScheduleTheme.colors.textPrimary,
-                    modifier = Modifier.padding(vertical = 4.dp).height(24.dp)
+                    modifier = Modifier.padding(vertical = 4.dp).size(24.dp)
                 )
             } else {
                 Text(
                     text = "Войти",
-                    modifier = Modifier.padding(vertical = 4.dp), // Делаем кнопку "пухлее"
                     style = ScheduleTheme.typography.bodyMain,
-                    color = Color.White // Жестко белый цвет текста для акцентной кнопки
+                    color = Color.White
                 )
             }
         }
@@ -124,7 +151,7 @@ fun LoginScreen(
 
         Button(
             onClick = { onLoginAsGuest() },
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().height(48.dp),
             shape = RoundedCornerShape(12.dp),
             colors = ButtonDefaults.buttonColors(
                 containerColor = ScheduleTheme.colors.surfaceActive
@@ -133,13 +160,57 @@ fun LoginScreen(
         ) {
             Text(
                 text = "Войти как гость",
-                modifier = Modifier.padding(vertical = 4.dp),
                 style = ScheduleTheme.typography.bodyMain,
                 color = ScheduleTheme.colors.textPrimary
             )
         }
+
+        if (showBiometricButton && activity != null) {
+            Spacer(modifier = Modifier.height(48.dp))
+            
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                IconButton(
+                    onClick = {
+                        BiometricHelper.promptBiometricAuth(
+                            activity = activity,
+                            title = "Вход в приложение",
+                            subtitle = "Приложите палец для входа",
+                            onSuccess = {
+                                val savedLogin = SecureStorage.getSavedLogin(context)
+                                val savedPass = SecureStorage.getSavedPassword(context)
+                                if (savedLogin != null && savedPass != null) {
+                                    viewModel.login(savedLogin, savedPass, onLogin, onTeacherFirstLogin)
+                                }
+                            },
+                            onFailed = {
+                                Toast.makeText(context, "Отпечаток не распознан", Toast.LENGTH_SHORT).show()
+                            },
+                            onError = { err ->
+                                Toast.makeText(context, "Ошибка: $err", Toast.LENGTH_SHORT).show()
+                            }
+                        )
+                    },
+                    modifier = Modifier.size(64.dp),
+                    colors = IconButtonDefaults.iconButtonColors(
+                        containerColor = ScheduleTheme.colors.surfaceActive,
+                        contentColor = ScheduleTheme.colors.accent
+                    )
+                ) {
+                    Icon(Icons.Default.Fingerprint, contentDescription = "Вход по отпечатку", modifier = Modifier.size(36.dp))
+                }
+                
+                Spacer(modifier = Modifier.height(8.dp))
+                
+                Text(
+                    text = "Войти по отпечатку",
+                    style = ScheduleTheme.typography.bodySecondary,
+                    color = ScheduleTheme.colors.textSecondary
+                )
+            }
+        }
     }
 }
+
 
 // Переиспользуемый компонент текстового поля для авторизации
 @Composable

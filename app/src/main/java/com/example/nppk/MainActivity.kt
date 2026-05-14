@@ -1,7 +1,7 @@
 package com.example.nppk
 
 import android.os.Bundle
-import androidx.activity.ComponentActivity
+import androidx.fragment.app.FragmentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Spring
@@ -42,7 +42,7 @@ import com.example.schedule.shared.ui.ui.theme.ProvideScheduleTheme
 import com.example.schedule.shared.ui.ui.theme.ScheduleTheme
 import kotlinx.coroutines.delay
 
-class MainActivity : ComponentActivity() {
+class MainActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)

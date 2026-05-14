@@ -7,6 +7,7 @@ import com.example.nppk.data.api.UpdateUserRequest
 import com.example.nppk.data.model.User
 import com.example.nppk.data.model.UserRole
 import com.example.nppk.util.HashUtils
+import com.example.nppk.util.SecureStorage
 import kotlinx.coroutines.delay
 
 class AuthRepositoryImpl(
@@ -125,6 +126,8 @@ class AuthRepositoryImpl(
                     .putString("user_group", groupNumber)
                     .commit()
 
+                SecureStorage.saveCredentials(context, login, password)
+
                 true
             } else {
                 false
@@ -154,6 +157,10 @@ class AuthRepositoryImpl(
             .remove("user_group")
             .remove("teacher_first_login_completed") // Сбрасываем при выходе
             .commit()
+            
+        // Мы НЕ очищаем SecureStorage здесь. 
+        // Данные (зашифрованные) остаются для биометрического входа.
+        // Если войдет другой пользователь, они просто перезапишутся.
     }
 
     override fun isTeacherFirstLogin(): Boolean {

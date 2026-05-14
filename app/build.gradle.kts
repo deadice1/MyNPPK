@@ -95,4 +95,8 @@ dependencies {
 
     // Coroutines — для асинхронной работы с API
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+
+    // Biometric & Security for Touch ID
+    implementation("androidx.biometric:biometric:1.1.0")
+    implementation("androidx.security:security-crypto:1.1.0-alpha06")
 }
