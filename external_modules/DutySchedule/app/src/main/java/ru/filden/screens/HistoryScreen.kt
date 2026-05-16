@@ -91,8 +91,8 @@ fun HistoryCard(record: DutyHistoryRecord) {
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "Дежурные: ${record.firstStudent.name}" +
-                        (record.secondStudent?.let { ", $it" } ?: ""),
+                text = "Дежурные:\n${record.firstStudent.name}" +
+                        (record.secondStudent?.let { ",\n${it.name}" } ?: ""),
                 style = ScheduleTheme.typography.bodyMain,
                 color = ScheduleTheme.colors.textPrimary
             )

@@ -44,10 +44,14 @@ fun DutyModule(
             userRole = role
 
             if (role != null) {
-                val groups = apiClient.getAvailableGroupsForUser(userId, role)
-                availableGroups = groups
+                availableGroups = apiClient.getAllGroups()
                 val student = apiClient.getStudentById(userId)
-                currentGroupId = student?.groupId
+                if(student!=null){
+                currentGroupId = student.groupId
+                }
+                else{
+                    currentGroupId = 1
+                }
             }
             isLoading = false
         }
@@ -81,7 +85,8 @@ fun DutyModule(
                         "Расписание дежурств",
                         style = ScheduleTheme.typography.h2,
                         color = ScheduleTheme.colors.textPrimary
-                    ) 
+                    )
+
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = ScheduleTheme.colors.surface
@@ -142,18 +147,21 @@ fun DutyModule(
 @Composable
 fun GroupSelector(
     groups: List<ru.filden.api.ApiGroup>,
-    currentGroupId: Int?,
+    currentGroupId: Int? = 1,
     onGroupSelected: (Int) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
+    var currentGroup by remember { mutableStateOf<ru.filden.api.ApiGroup>(groups.get(0)) }
 
     Box {
-        IconButton(onClick = { expanded = true }) {
+        TextButton(onClick = { expanded = true }) {
+            Text(text = "Группа: ${currentGroup.name}")
             Icon(
                 Icons.Default.SwapHoriz,
                 contentDescription = "Выбрать группу",
                 tint = ScheduleTheme.colors.textPrimary
             )
+
         }
 
         DropdownMenu(
@@ -172,6 +180,7 @@ fun GroupSelector(
                     },
                     onClick = {
                         onGroupSelected(group.id)
+                        currentGroup = group
                         expanded = false
                     }
                 )
