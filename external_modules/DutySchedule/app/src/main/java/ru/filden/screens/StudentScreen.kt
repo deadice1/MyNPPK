@@ -62,7 +62,7 @@ fun StudentsScreen(
                 style = ScheduleTheme.typography.h1,
                 color = ScheduleTheme.colors.textPrimary
             )
-
+                /*
             if (userRole.canManageStudents()) {
                 Button(
                     onClick = { showAddDialog = true },
@@ -77,6 +77,7 @@ fun StudentsScreen(
                     Text("Добавить", style = ScheduleTheme.typography.bodyMain)
                 }
             }
+        */
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -132,7 +133,8 @@ fun StudentsScreen(
             }
         }
     }
-
+}
+/*
     if (showAddDialog) {
         StudentDialog(
             title = "Добавить студента",
@@ -170,7 +172,7 @@ fun StudentsScreen(
         )
     }
 }
-
+*/
 @Composable
 fun StudentItem(
     student: Student,
@@ -211,7 +213,7 @@ fun StudentItem(
                         style = ScheduleTheme.typography.bodyMain,
                         color = ScheduleTheme.colors.textSecondary
                     )
-                    if (canEditCount) {
+                    if (false) {
                         Spacer(modifier = Modifier.width(8.dp))
                         IconButton(
                             onClick = onIncrementDuty,
@@ -223,7 +225,7 @@ fun StudentItem(
                 }
             }
 
-            if (canEdit) {
+            if (false) {
                 Row {
                     IconButton(onClick = onEdit) {
                         Icon(Icons.Default.Edit, contentDescription = "Редактировать", tint = ScheduleTheme.colors.accent)
@@ -236,7 +238,7 @@ fun StudentItem(
         }
     }
 }
-
+/*
 @Composable
 fun StudentDialog(
     title: String,
@@ -335,4 +337,4 @@ fun StudentDialog(
         onConfirm = { name, _ -> onConfirm(name) },
         onDismiss = onDismiss
     )
-}
+}*/

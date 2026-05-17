@@ -2,6 +2,7 @@
 package ru.filden.api
 
 import com.google.gson.annotations.SerializedName
+import java.sql.Date
 
 
 data class ApiBaseResponse<T>(
@@ -34,13 +35,19 @@ data class ApiGroup(
 
 data class ApiDutyHistory(
     val id: Int,
-    @SerializedName("first_student_id") val firstStudentId: Int,
-    @SerializedName("second_student_id") val secondStudentId: Int?,
+    @SerializedName("f_student_id") val firstStudentId: Int,
+    @SerializedName("s_student_id") val secondStudentId: Int?,
     @SerializedName("group_id") val groupId: Int,
-    val date: String,
-    @SerializedName("first_student_name") val firstStudentName: String? = null,
-    @SerializedName("second_student_name") val secondStudentName: String? = null
+    @SerializedName("date") val date: String
+
 )
+data class CreateDutyHistory(
+    val id: Int,
+    @SerializedName("f_student_id") val firstStudentId: Int,
+    @SerializedName("s_student_id") val secondStudentId: Int?,
+    @SerializedName("group_id") val groupId: Int,
+    @SerializedName("date")val date: String,
+    )
 
 data class ApiTeacher(
     val id: Int,
@@ -83,12 +90,13 @@ data class Student(
     val user_id:Int,
     val name: String,
     val countDuty: Int,
-    val groupId: Int
+    val groupId: Int,
+    val is_duty: Boolean
 )
 
 data class DutyPair(
-    val first: Student,
-    val second: Student?
+    var first: Student,
+    var second: Student?
 )
 
 data class DutyHistoryRecord(

@@ -1,14 +1,22 @@
 package ru.filden.screens
 
+import android.R
+import android.text.Layout
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.magnifier
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.QuestionMark
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Popup
 import com.example.schedule.shared.ui.ui.theme.ScheduleTheme
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import ru.filden.api.ApiClient
 import ru.filden.api.DutyPair
@@ -16,6 +24,7 @@ import ru.filden.api.Student
 import ru.filden.api.UserRole
 import ru.filden.api.canConfirmDuty
 import ru.filden.api.canSelectDuty
+import kotlin.random.Random
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -24,11 +33,20 @@ fun MainDutyScreen(
     groupId: Int,
     userRole: UserRole
 ) {
+    val toolTipText = "Выбираются два студента из списка с наименьшим кол-вом дежурств,\n" +
+            "или же случайно, в зависимости от выбора старосты(зам. старосты, зам.зам. старосты или другого отв. лица) или преподавателя, которые позже отмечают дежурство (дежурившие студенты должны отчитаться!)\n"+
+            "Пример порядка дежурств:\n1+2\n3+4\n5+6\nИ так далее.. И по кругу.\nВ случае отсутствия студента, возможно выбрать другого, или может продежурить один.\n" +
+            "В таком случае алгоритм рано или поздно позволит этому студенту нагнать остальных.\n" +
+            "Если же студент пропустит дежурство несколько раз (и его кол-во дежуств окажется значительно меньше, чем у остальных)\n" +
+            "он будет попадаться каждое второе дежурство, пока не нагонит остальных.\n"
+
+
     var currentDuty by remember { mutableStateOf<DutyPair?>(null) }
     var students by remember { mutableStateOf<List<Student>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true)}
     var showError by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
+    var showToolTip by remember { mutableStateOf(false) }
 
     val scope = rememberCoroutineScope()
 
@@ -36,7 +54,7 @@ fun MainDutyScreen(
         scope.launch {
             isLoading = true
             currentDuty = apiClient.getCurrentDuty(groupId)
-            students = apiClient.getStudentsByGroup(groupId)
+            students = apiClient.getStudentsByGroup(groupId).filter { it.is_duty }
             isLoading = false
         }
     }
@@ -74,13 +92,6 @@ fun MainDutyScreen(
             readOnly = !userRole.canSelectDuty(),
             onStudentSelected = { student ->
                 currentDuty = currentDuty?.copy(first = student)
-                scope.launch {
-                    apiClient.updateCurrentDuty(
-                        groupId = groupId,
-                        firstStudentId = student.id,
-                        secondStudentId = currentDuty?.second?.id
-                    )
-                }
             }
         )
 
@@ -93,13 +104,7 @@ fun MainDutyScreen(
             readOnly = !userRole.canSelectDuty(),
             onStudentSelected = { student ->
                 currentDuty = currentDuty?.copy(second = student)
-                scope.launch {
-                    apiClient.updateCurrentDuty(
-                        groupId = groupId,
-                        firstStudentId = currentDuty?.first?.id ?: 0,
-                        secondStudentId = student.id
-                    )
-                }
+
             }
         )
 
@@ -109,14 +114,11 @@ fun MainDutyScreen(
             Button(
                 onClick = {
                     scope.launch {
-                        val success = apiClient.completeDuty(
-                            groupId = groupId,
-                            firstStudentId = currentDuty?.first?.id ?: 0,
-                            secondStudentId = currentDuty?.second?.id
-                        )
+                        val success = completeDuty(currentDuty, apiClient)
                         if (success) {
                             currentDuty = apiClient.getCurrentDuty(groupId)
                             students = apiClient.getStudentsByGroup(groupId)
+
                         } else {
                             showError = true
                             errorMessage = "Ошибка при завершении дежурства"
@@ -134,6 +136,23 @@ fun MainDutyScreen(
             ) {
                 Text("Отметить дежурство", style = ScheduleTheme.typography.bodyMain)
             }
+            Button(
+                onClick = {
+                    currentDuty = getRandomPair(currentDuty?.copy(), students)
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp)
+                    .padding(top = 10.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = ScheduleTheme.colors.textSecondary,
+                    contentColor = ScheduleTheme.colors.background
+                )) {
+                Text("Случайная пара", style = ScheduleTheme.typography.bodyMain)
+                }
+
+
         } else {
             Card(
                 modifier = Modifier.fillMaxWidth(),
@@ -151,8 +170,38 @@ fun MainDutyScreen(
                 )
             }
         }
+        Spacer(modifier = Modifier.height(110.dp))
+        Column(
+            Modifier.fillMaxSize()
+                .background(ScheduleTheme.colors.background)
+
+        ) {
+            Box(contentAlignment = Alignment.CenterStart) {
+                TextButton(onClick = { showToolTip = true }) {
+                    Text(
+                        "Как это работает?",
+                        color = ScheduleTheme.colors.textSecondary
+                    )
+                }
+            }
+        }
+
     }
 
+
+    if (showToolTip) {
+        AlertDialog(
+            onDismissRequest = { showToolTip = false },
+            title = {Text("Как это работает?", color = ScheduleTheme.colors.textPrimary)},
+            text = {Text(toolTipText,color = ScheduleTheme.colors.textPrimary)},
+            containerColor = ScheduleTheme.colors.surface,
+            confirmButton = {
+                TextButton(onClick = { showToolTip = false }) {
+                    Text("Понятно", color = ScheduleTheme.colors.accent)
+                }
+            }
+        )
+    }
     if (showError) {
         AlertDialog(
             onDismissRequest = { showError = false },
@@ -167,6 +216,7 @@ fun MainDutyScreen(
         )
     }
 }
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -237,7 +287,7 @@ fun StudentSelector(
                             ) 
                         },
                         onClick = {
-                            onStudentSelected?.invoke(Student(0, 0,"Не выбран", 0, 0))
+                            onStudentSelected?.invoke(Student(0, 0,"Не выбран", 0, 0, true))
                             expanded = false
                         }
                     )
@@ -261,3 +311,26 @@ fun StudentSelector(
         }
     }
 }
+suspend fun completeDuty(pair:DutyPair?, apiClient: ApiClient): Boolean{
+        if(apiClient.incrementDutyCount(pair?.first?.id ?: 0)){
+        if (pair?.second != null){
+            apiClient.incrementDutyCount(pair.second!!.id)
+         }
+            if(!apiClient.saveDutyHistory(pair?.first?.id?:0, pair?.second?.id, pair?.first?.groupId?:0)) return false
+            return true
+        }
+        return false
+}
+fun getRandomPair(pair: DutyPair?, students: List<Student>): DutyPair?{
+    val randomPair: DutyPair? = pair
+    var secondStudent: Student?
+    val firstStudent: Student = students[Random.nextInt(0, students.size-1)]
+    secondStudent = students[Random.nextInt(0, students.size-1)]
+    if(firstStudent.id == secondStudent.id){
+        secondStudent = students[Random.nextInt(0, students.size-1)]
+    }
+    randomPair?.first = firstStudent
+    randomPair?.second = secondStudent
+    return randomPair
+}
+
