@@ -59,7 +59,6 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // Используем наш стилизованный компонент
         AuthTextField(
             value = loginState.value,
             onValueChange = { loginState.value = it },
@@ -98,7 +97,7 @@ fun LoginScreen(
                 )
             },
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp), // Делаем закругление как у полей ввода
+            shape = RoundedCornerShape(12.dp),
             colors = ButtonDefaults.buttonColors(
                 containerColor = ScheduleTheme.colors.accent,
                 disabledContainerColor = ScheduleTheme.colors.surfaceActive
@@ -113,9 +112,9 @@ fun LoginScreen(
             } else {
                 Text(
                     text = "Войти",
-                    modifier = Modifier.padding(vertical = 4.dp), // Делаем кнопку "пухлее"
+                    modifier = Modifier.padding(vertical = 4.dp),
                     style = ScheduleTheme.typography.bodyMain,
-                    color = Color.White // Жестко белый цвет текста для акцентной кнопки
+                    color = Color.White
                 )
             }
         }
@@ -141,7 +140,6 @@ fun LoginScreen(
     }
 }
 
-// Переиспользуемый компонент текстового поля для авторизации
 @Composable
 private fun AuthTextField(
     value: String,

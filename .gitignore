@@ -13,3 +13,12 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Gemini AI Context
+GEMINI.md
+
+# IDE
+.idea/
+
+# Build output (Map module root)
+external_modules/Map/build/
