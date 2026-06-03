@@ -19,7 +19,7 @@
             android:layout_height="wrap_content"
             android:paddingHorizontal="12dp"
             android:layout_marginBottom="4dp"
-            android:text="Навигация"
+            android:text="@string/map_title"
             android:textSize="24sp"
             android:textStyle="bold" />
 
@@ -29,7 +29,7 @@
             android:layout_height="wrap_content"
             android:paddingHorizontal="12dp"
             android:layout_marginBottom="8dp"
-            android:text="2 этаж"
+            android:text="@string/map_floor_default"
             android:textSize="20sp"
             android:textStyle="bold" />
 
@@ -58,7 +58,7 @@
                 android:textAllCaps="false"
                 android:maxLines="1"
                 app:cornerRadius="8dp"
-                android:text="-1 этаж" />
+                android:text="@string/map_floor_basement" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnFloor1"
@@ -75,7 +75,7 @@
                 android:textAllCaps="false"
                 android:maxLines="1"
                 app:cornerRadius="8dp"
-                android:text="1 этаж" />
+                android:text="@string/map_floor_1" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnFloor2"
@@ -92,7 +92,7 @@
                 android:textAllCaps="false"
                 android:maxLines="1"
                 app:cornerRadius="8dp"
-                android:text="2 этаж" />
+                android:text="@string/map_floor_2" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnFloor3"
@@ -109,7 +109,7 @@
                 android:textAllCaps="false"
                 android:maxLines="1"
                 app:cornerRadius="8dp"
-                android:text="3 этаж" />
+                android:text="@string/map_floor_3" />
 
         </com.google.android.material.button.MaterialButtonToggleGroup>
 

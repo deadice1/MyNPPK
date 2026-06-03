@@ -42,11 +42,7 @@ private val gson = Gson()
 
 object MapRoomRegistry {
 
-    /**
-     * Для проверки ДСИ и расписания: подставить дату вместо календаря устройства.
-     * После проверки присвойте null — будет использоваться реальная дата.
-     * (Не const: в Kotlin у const допускаются только ненулевые примитивы и String.)
-     */
+    // для теста даты: "27.06.2026", иначе null
     private val MAP_CALENDAR_OVERRIDE: String? = null
 
     private val roomsById: Map<String, MapRoomDef> = listOf(
@@ -69,9 +65,9 @@ object MapRoomRegistry {
         ),
         MapRoomDef(
             "203",
-            "203  кабинет",
-            "Информационно-методический центр (ИМЦ).",
-            "Лобенко Юлия Владимировна",
+            "203 кабинет",
+            "Центр карьеры.",
+            "Зубова Екатерина Борисовна",
             null,
             false,
         ),
@@ -244,15 +240,15 @@ object MapRoomRegistry {
             "101",
             "101 кабинет",
             "Заочное отделение; психологическая служба",
-            "Шрамова Янина Михайловна",
+            "Шведюк Елена Викторовна",
             null,
             false,
         ),
         MapRoomDef("102", "102 — приёмная", "Приёмная колледжа.", null, "102", false),
         MapRoomDef(
             "103",
-            "103  кабинет",
-            "Центр воспитания и социальной работы.",
+            "103 кабинет",
+            "Центр профориентации и педагогической поддержки.",
             null,
             "103",
             false,
@@ -328,7 +324,7 @@ object MapRoomRegistry {
         MapRoomDef(
             "KITCHEN",
             "Кухня",
-            "Кухня (подвал).",
+            "Кухня столовой колледжа. Здесь Вкусно готовят!",
             null,
             null,
             false,
@@ -351,15 +347,15 @@ object MapRoomRegistry {
         ),
         MapRoomDef(
             "112",
-            "112  кабинет",
-            "Дистанционного обучения.",
-            null,
+            "112 кабинет",
+            "Кабинет инклюзивного образования.",
+            "Рузанкина Елизавета Александровна",
             null,
             false,
         ),
         MapRoomDef(
             "WC_M1",
-            "Санузел, 1 этаж",
+            "Туалет, 1 этаж",
             "Мужской.",
             null,
             null,
@@ -367,7 +363,7 @@ object MapRoomRegistry {
         ),
         MapRoomDef(
             "WC_W1",
-            "Санузел, 1 этаж",
+            "Туалет, 1 этаж",
             "Женский.",
             null,
             null,
@@ -375,7 +371,7 @@ object MapRoomRegistry {
         ),
         MapRoomDef(
             "WC_M2",
-            "Санузел, 2 этаж",
+            "Туалет, 2 этаж",
             "Мужской.",
             null,
             null,
@@ -383,7 +379,7 @@ object MapRoomRegistry {
         ),
         MapRoomDef(
             "WC_W2",
-            "Санузел, 2 этаж",
+            "Туалет, 2 этаж",
             "Женский.",
             null,
             null,
@@ -393,7 +389,6 @@ object MapRoomRegistry {
 
     fun roomDef(id: String): MapRoomDef? = roomsById[id]
 
-    /** Подбор кабинета по нормализованным координатам SVG (0..1), как в [FloorHit]. */
     fun findRoomAt(asset: String, nx: Float, ny: Float): MapRoomDef? {
         val x = nx.coerceIn(0f, 1f)
         val y = ny.coerceIn(0f, 1f)
@@ -473,7 +468,7 @@ object MapRoomRegistry {
     }
 
     private fun floor1Hits(): List<FloorHit> {
-        val pad = 480f // floor1.svg: translate(pad,0), ширина viewBox = 3340 + pad
+        val pad = 480f
         val pw = 3340f + pad
         val ph = 6030f
         fun r(x: Int, y: Int, w: Int, h: Int, id: String) =
@@ -516,7 +511,7 @@ object MapRoomRegistry {
         )
     }
 
-    private val dateFmt = SimpleDateFormat("dd.MM.yyyy", Locale("ru", "RU"))
+    private val dateFmt = SimpleDateFormat("dd.MM.yyyy", Locale.forLanguageTag("ru-RU"))
 
     fun todayApiString(): String {
         val o = MAP_CALENDAR_OVERRIDE
@@ -537,7 +532,6 @@ object MapRoomRegistry {
         return c.get(Calendar.DAY_OF_WEEK) == Calendar.WEDNESDAY
     }
 
-
     fun studentInitiativeLine(roomId: String): String? {
         if (!isWednesday()) return null
         return when (roomId) {
@@ -551,11 +545,10 @@ object MapRoomRegistry {
         }
     }
 
-
     fun conferenceExtraForDate(dateStr: String): String? {
         return when (dateStr) {
-            "18.05.2026" -> "Международный день музеев — для всех групп."
-            "19.05.2026" -> "День детских общественных организаций России — для 1–2 курса."
+            "27.06.2026" -> "27 июня — день молодежи"
+            "30.06.2026" -> "30 июня — выдача дипломов"
             else -> null
         }
     }
@@ -571,7 +564,7 @@ object MapRoomRegistry {
         conferenceExtraForDate(effectiveDateStr)?.let { text ->
             lines += "• $effectiveDateStr\n  $text"
         }
-        val knownDates = listOf("18.05.2026", "19.05.2026")
+        val knownDates = listOf("27.06.2026", "30.06.2026")
         for (d in knownDates) {
             if (d == effectiveDateStr) continue
             val dt = try {
@@ -586,34 +579,6 @@ object MapRoomRegistry {
         }
         if (lines.isEmpty()) return ""
         return lines.joinToString("\n\n")
-    }
-
-    /**
-
-     */
-    fun conferenceSoonReminderLine(): String? {
-        val todayStr = todayApiString()
-        val ref = try {
-            dateFmt.parse(todayStr) ?: return null
-        } catch (_: Exception) {
-            return null
-        }
-        val knownDates = listOf("18.05.2026", "19.05.2026")
-        for (d in knownDates) {
-            val dt = try {
-                dateFmt.parse(d) ?: continue
-            } catch (_: Exception) {
-                continue
-            }
-            val diffMs = dt.time - ref.time
-            if (diffMs <= 0L) continue
-            val days = diffMs / 86400000L
-            if (days !in 1L..7L) continue
-            if (conferenceExtraForDate(d) != null) {
-                return "Скоро событие в колледже!"
-            }
-        }
-        return null
     }
 
     suspend fun loadSchedule(apiRoomName: String, dateStr: String): Result<List<ApiLessonSlot>> =

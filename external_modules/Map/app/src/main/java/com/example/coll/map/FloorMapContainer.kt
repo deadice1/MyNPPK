@@ -15,14 +15,13 @@ import android.webkit.WebViewClient
 import android.widget.FrameLayout
 import android.widget.ScrollView
 import android.widget.TextView
-import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.content.ContextCompat
+import androidx.core.view.isVisible
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.findViewTreeLifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.example.coll.R
 import com.google.android.material.button.MaterialButtonToggleGroup
-import com.google.android.material.card.MaterialCardView
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
@@ -34,7 +33,7 @@ class FloorMapContainer @JvmOverloads constructor(
 
     private lateinit var webView: WebView
     private lateinit var blockLayer: View
-    private lateinit var bubbleCard: MaterialCardView
+    private lateinit var bubbleCard: FrameLayout
     private lateinit var bubbleScroll: ScrollView
     private lateinit var bubbleText: TextView
 
@@ -84,8 +83,8 @@ class FloorMapContainer @JvmOverloads constructor(
             setBackgroundColor(ContextCompat.getColor(context, R.color.map_scrim))
             visibility = GONE
             isClickable = true
-            elevation = dp(8).toFloat()
-            translationZ = dp(8).toFloat()
+            elevation = 0f
+            translationZ = 0f
             setOnClickListener { hideCloud() }
         }
         addView(blockLayer, indexOfChild(webView) + 1)
@@ -94,37 +93,35 @@ class FloorMapContainer @JvmOverloads constructor(
             setTextColor(Color.BLACK)
             textSize = 13f
             setLineSpacing(0f, 1.08f)
-            setPadding(dp(16), dp(14), dp(16), dp(28))
+            setPadding(dp(16), dp(14), dp(16), dp(14))
         }
-        bubbleScroll = ScrollView(context).apply {
+        bubbleScroll = BubbleScrollView(context, ::computeBubbleMaxHeightPx).apply {
             isVerticalScrollBarEnabled = true
             isScrollbarFadingEnabled = false
             isFillViewport = false
-            overScrollMode = View.OVER_SCROLL_IF_CONTENT_SCROLLS
+            overScrollMode = OVER_SCROLL_IF_CONTENT_SCROLLS
             clipToPadding = true
             clipChildren = true
-            setPadding(0, 0, 0, dp(12))
-            addView(bubbleText, FrameLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT))
+            addView(bubbleText, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT))
         }
 
         val bubbleWidth = (resources.displayMetrics.widthPixels * 0.72f).toInt().coerceIn(dp(260), dp(340))
 
-        bubbleCard = MaterialCardView(context).apply {
-            radius = dp(40).toFloat()
-            strokeWidth = 0
-            setCardBackgroundColor(Color.TRANSPARENT)
-            background = AppCompatResources.getDrawable(context, R.drawable.map_bubble_cloud_bg)
+        bubbleCard = FrameLayout(context).apply {
+            background = ContextCompat.getDrawable(context, R.drawable.map_bubble_cloud_bg)
             visibility = GONE
-            clipChildren = false
-            cardElevation = dp(8).toFloat()
-            elevation = dp(20).toFloat()
-            translationZ = dp(20).toFloat()
-            // Ставим WRAP_CONTENT, чтобы карточка подстраивалась под текст
-            addView(bubbleScroll, LayoutParams(bubbleWidth, LayoutParams.WRAP_CONTENT).apply {
-                gravity = Gravity.CENTER_HORIZONTAL
-            })
+            clipChildren = true
+            clipToOutline = true
+            elevation = 0f
+            translationZ = 0f
+            setPadding(dp(1), dp(1), dp(1), dp(1))
+            addView(
+                bubbleScroll,
+                LayoutParams(bubbleWidth, LayoutParams.WRAP_CONTENT).apply {
+                    gravity = Gravity.CENTER_HORIZONTAL
+                },
+            )
         }
-
 
         addView(
             bubbleCard,
@@ -142,11 +139,32 @@ class FloorMapContainer @JvmOverloads constructor(
 
     private fun dp(v: Int): Int = (v * resources.displayMetrics.density).toInt()
 
+    private fun computeBubbleMaxHeightPx(): Int {
+        val mapH = when {
+            height > 0 -> height
+            webView.height > 0 -> webView.height
+            else -> (resources.displayMetrics.heightPixels * 0.45f).toInt()
+        }
+        return (mapH * 0.72f).toInt().coerceIn(dp(120), dp(420))
+    }
+
+    private fun remeasureBubble() {
+        bubbleScroll.requestLayout()
+        bubbleCard.requestLayout()
+    }
+
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        super.onSizeChanged(w, h, oldw, oldh)
+        if (bubbleCard.isVisible) {
+            remeasureBubble()
+        }
+    }
+
     private fun wireMapGestureExclusion() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return
         if (mapGestureExclusionWired) return
         mapGestureExclusionWired = true
-        val listener = View.OnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
+        val listener = OnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
             applyMapLeftGestureExclusionRects()
         }
         addOnLayoutChangeListener(listener)
@@ -178,15 +196,6 @@ class FloorMapContainer @JvmOverloads constructor(
         showRoomCloud(room)
     }
 
-
-    private fun bubbleScrollMaxHeightPx(): Int {
-        val dm = resources.displayMetrics
-        val fromBottom = dp(88)
-        val topReserved = dp(56)
-        val h = dm.heightPixels - topReserved - fromBottom
-        return h.coerceIn(dp(280), dp(520))
-    }
-
     private fun resolveLifecycleOwner(): LifecycleOwner? {
         findViewTreeLifecycleOwner()?.let { return it }
         return context.findLifecycleOwner()
@@ -202,7 +211,6 @@ class FloorMapContainer @JvmOverloads constructor(
         syncFloorAsset(assetFileName)
         webView.loadUrl("file:///android_asset/$assetFileName")
     }
-
 
     fun syncFloorAsset(assetFileName: String) {
         currentAsset = assetFileName
@@ -240,6 +248,7 @@ class FloorMapContainer @JvmOverloads constructor(
 
         bubbleText.text = sb.toString().trimEnd()
         bubbleScroll.scrollTo(0, 0)
+        remeasureBubble()
         bubbleCard.visibility = VISIBLE
         blockLayer.visibility = VISIBLE
         bringChildToFront(blockLayer)
@@ -256,8 +265,8 @@ class FloorMapContainer @JvmOverloads constructor(
                     },
                 )
                 bubbleText.append(scheduleBlock)
-                bubbleText.requestLayout()
                 bubbleScroll.post {
+                    remeasureBubble()
                     bubbleScroll.scrollTo(0, 0)
                 }
             }
@@ -286,6 +295,31 @@ class FloorMapContainer @JvmOverloads constructor(
                 else -> return@addOnButtonCheckedListener
             }
             setFloorAsset(asset)
+        }
+    }
+
+    private class BubbleScrollView(
+        context: Context,
+        private val maxHeightPx: () -> Int,
+    ) : ScrollView(context) {
+
+        override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+            val child = getChildAt(0)
+            if (child == null) {
+                super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+                return
+            }
+            val innerWidth = (View.MeasureSpec.getSize(widthMeasureSpec) - paddingLeft - paddingRight)
+                .coerceAtLeast(0)
+            val childWidthSpec = View.MeasureSpec.makeMeasureSpec(innerWidth, View.MeasureSpec.EXACTLY)
+            val childHeightSpec = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
+            child.measure(childWidthSpec, childHeightSpec)
+            val contentHeight = child.measuredHeight + paddingTop + paddingBottom
+            val height = contentHeight.coerceAtMost(maxHeightPx().coerceAtLeast(1))
+            super.onMeasure(
+                widthMeasureSpec,
+                View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY),
+            )
         }
     }
 

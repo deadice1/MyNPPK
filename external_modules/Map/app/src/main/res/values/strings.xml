@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">coll</string>
+    <string name="map_title">Навигация по колледжу</string>
+    <string name="map_floor_default">2 этаж</string>
+    <string name="map_floor_basement">-1 этаж</string>
+    <string name="map_floor_1">1 этаж</string>
+    <string name="map_floor_2">2 этаж</string>
+    <string name="map_floor_3">3 этаж</string>
 </resources>
