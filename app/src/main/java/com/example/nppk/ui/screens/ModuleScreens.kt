@@ -125,7 +125,7 @@ fun MapModuleScreen() {
                 if (!isChecked) return@addOnButtonCheckedListener
                 applyFloorButtonState(checkedId)
                 when (checkedId) {
-                    com.example.coll.R.id.btnFloorBasement -> loadFloor("Подвал")
+                    com.example.coll.R.id.btnFloorBasement -> loadFloor("-1 этаж")
                     com.example.coll.R.id.btnFloor1 -> loadFloor("1 этаж")
                     com.example.coll.R.id.btnFloor2 -> loadFloor("2 этаж")
                     com.example.coll.R.id.btnFloor3 -> loadFloor("3 этаж")

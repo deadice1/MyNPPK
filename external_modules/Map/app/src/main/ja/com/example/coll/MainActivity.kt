@@ -24,7 +24,7 @@ class MainActivity : AppCompatActivity() {
             if (!isChecked) return@addOnButtonCheckedListener
 
             when (checkedId) {
-                R.id.btnFloorBasement -> loadFloor("Подвал", "floor_basement.svg")
+                R.id.btnFloorBasement -> loadFloor("-1 этаж", "floor_basement.svg")
                 R.id.btnFloor1 -> loadFloor("1 этаж", "floor1.svg")
                 R.id.btnFloor2 -> loadFloor("2 этаж", "floor2.svg")
                 R.id.btnFloor3 -> loadFloor("3 этаж", "floor3.svg")
